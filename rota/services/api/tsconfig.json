@@ -6,6 +6,9 @@
     "module": "Node16",
     "moduleResolution": "Node16"
   },
+  "references": [
+    { "path": "../../packages/contracts" }
+  ],
   "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }

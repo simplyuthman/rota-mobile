@@ -82,15 +82,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages
+        run: pnpm build:packages
+
       - name: Initialize PostgreSQL databases
         run: |
           PGPASSWORD=rota_local_dev psql -h localhost -U rota -d control_plane -f docker/postgres-init.sql
 
       - name: Run database migrations
         run: pnpm migrate
-
-      - name: Build shared packages
-        run: pnpm --filter "@rota/config" --filter "@rota/contracts" build
 
       - name: Typecheck
         run: pnpm typecheck
