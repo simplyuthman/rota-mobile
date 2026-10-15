@@ -1,0 +1,9 @@
+{
+  "name": "@rota/links",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static HTTPS link site for Android App Links and invite fallbacks",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}

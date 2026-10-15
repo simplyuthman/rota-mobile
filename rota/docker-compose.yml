@@ -1,0 +1,88 @@
+version: '3.9'
+
+# ==============================================================================
+# Rota — Local development infrastructure
+# ==============================================================================
+# Services:
+#   postgres  — one instance, three databases (control plane + two shards)
+#   redis_cache — cache instance, allkeys-lru eviction, all cache keys have TTLs
+#   redis_queue — queue instance, noeviction (BullMQ requirement)
+#
+# Usage:
+#   docker compose up -d
+#   docker compose down -v   (destroys all data)
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL — single instance, three logical databases
+  # Databases are created by the init script below.
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: rota_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rota
+      POSTGRES_PASSWORD: rota_local_dev
+      POSTGRES_DB: control_plane
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rota -d control_plane']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ----------------------------------------------------------------------------
+  # Redis — Cache instance
+  # maxmemory-policy: allkeys-lru (cache wants eviction)
+  # Every key written by the application MUST have a TTL.
+  # See: BACKEND-SCHEMA.md §6, AGENTS.md §L-04
+  # ----------------------------------------------------------------------------
+  redis_cache:
+    image: redis:7-alpine
+    container_name: rota_redis_cache
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Redis — Queue instance (BullMQ)
+  # maxmemory-policy: noeviction (BullMQ requires this; eviction deletes jobs)
+  # See: AGENTS.md §L-04, TRD §2
+  # ----------------------------------------------------------------------------
+  redis_queue:
+    image: redis:7-alpine
+    container_name: rota_redis_queue
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+      --save ""
+      --appendonly no
+    ports:
+      - '6380:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:

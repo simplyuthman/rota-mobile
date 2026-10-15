@@ -1,0 +1,560 @@
+/**
+ * ============================================================================
+ * DESIGN SYSTEM TOKENS - GENERATED CSS VARIABLES
+ * Generated on: 2026-10-15T08:08:53.007Z
+ * ============================================================================
+ * 
+ * DESIGN SYSTEM RULES:
+ * 1. PRIMITIVES (--primitive-*):
+ *    Foundational color palette and scale definitions.
+ *    [WARNING] NEVER apply primitive tokens directly to UI components.
+ * 
+ * 2. SEMANTIC ROLES (--color-*):
+ *    Semantic color roles describing functional UI intent.
+ *    [APPLY] ALWAYS use semantic roles in component stylesheets.
+ *    Theme switching (Light/Dark) operates exclusively on these semantic roles.
+ * ============================================================================
+ */
+
+/* ==========================================================================
+   GLOBAL DESIGN TOKENS (PRIMITIVES, SPACING, SHADOWS, TYPOGRAPHY)
+   ========================================================================== */
+:root {
+  /* ========================================================================
+     1. FOUNDATION PRIMITIVES (DO NOT APPLY DIRECTLY TO UI)
+     ======================================================================== */
+  /* --- Key Color Seeds --- */
+  --primitive-key-primary: #004ed4;
+  --primitive-key-secondary: #003eaa;
+  --primitive-key-tertiary: #005efe;
+  --primitive-key-neutral: #16181d;
+  --primitive-key-neutral-variant: #38393a;
+  --primitive-key-error: #c51707;
+
+  /* --- Primitive Palette: PRIMARY --- */
+  --primitive-primary-0: #000000;
+  --primitive-primary-10: #001333;
+  --primitive-primary-20: #002566;
+  --primitive-primary-30: #003899;
+  --primitive-primary-40: #004bcc;
+  --primitive-primary-50: #005dff;
+  --primitive-primary-60: #337eff;
+  --primitive-primary-70: #669eff;
+  --primitive-primary-80: #99beff;
+  --primitive-primary-90: #ccdfff;
+  --primitive-primary-95: #e5efff;
+  --primitive-primary-98: #f5f9ff;
+  --primitive-primary-99: #fafcff;
+  --primitive-primary-100: #ffffff;
+
+  /* --- Primitive Palette: SECONDARY --- */
+  --primitive-secondary-0: #000000;
+  --primitive-secondary-10: #001c4c;
+  --primitive-secondary-20: #002e80;
+  --primitive-secondary-30: #003eaa;
+  --primitive-secondary-40: #004ed6;
+  --primitive-secondary-50: #005dff;
+  --primitive-secondary-60: #3d84ff;
+  --primitive-secondary-70: #70a5ff;
+  --primitive-secondary-80: #a3c5ff;
+  --primitive-secondary-90: #d6e5ff;
+  --primitive-secondary-95: #ebf2ff;
+  --primitive-secondary-98: #f5f9ff;
+  --primitive-secondary-99: #fafcff;
+  --primitive-secondary-100: #ffffff;
+
+  /* --- Primitive Palette: TERTIARY --- */
+  --primitive-tertiary-0: #000000;
+  --primitive-tertiary-10: #001333;
+  --primitive-tertiary-20: #002666;
+  --primitive-tertiary-30: #003999;
+  --primitive-tertiary-40: #004bcc;
+  --primitive-tertiary-50: #005efe;
+  --primitive-tertiary-60: #337eff;
+  --primitive-tertiary-70: #669fff;
+  --primitive-tertiary-80: #99bfff;
+  --primitive-tertiary-90: #ccdfff;
+  --primitive-tertiary-95: #e5efff;
+  --primitive-tertiary-98: #f5f9ff;
+  --primitive-tertiary-99: #fafcff;
+  --primitive-tertiary-100: #ffffff;
+
+  /* --- Primitive Palette: NEUTRAL --- */
+  --primitive-neutral-0: #000000;
+  --primitive-neutral-10: #16181d;
+  --primitive-neutral-20: #2c303a;
+  --primitive-neutral-30: #424857;
+  --primitive-neutral-40: #586074;
+  --primitive-neutral-50: #6e7891;
+  --primitive-neutral-60: #8b93a7;
+  --primitive-neutral-70: #a8aebd;
+  --primitive-neutral-80: #c5c9d3;
+  --primitive-neutral-90: #e2e4e9;
+  --primitive-neutral-95: #f0f1f4;
+  --primitive-neutral-98: #f9fafb;
+  --primitive-neutral-99: #fcfcfd;
+  --primitive-neutral-100: #ffffff;
+
+  /* --- Primitive Palette: NEUTRAL VARIANT --- */
+  --primitive-neutral-variant-0: #000000;
+  --primitive-neutral-variant-10: #19191a;
+  --primitive-neutral-variant-20: #323334;
+  --primitive-neutral-variant-30: #4b4c4e;
+  --primitive-neutral-variant-40: #646668;
+  --primitive-neutral-variant-50: #7d8082;
+  --primitive-neutral-variant-60: #97999b;
+  --primitive-neutral-variant-70: #b1b2b4;
+  --primitive-neutral-variant-80: #cbcccd;
+  --primitive-neutral-variant-90: #e5e5e6;
+  --primitive-neutral-variant-95: #f2f2f2;
+  --primitive-neutral-variant-98: #fafafa;
+  --primitive-neutral-variant-99: #fcfcfc;
+  --primitive-neutral-variant-100: #ffffff;
+
+  /* --- Primitive Palette: ERROR --- */
+  --primitive-error-0: #000000;
+  --primitive-error-10: #310602;
+  --primitive-error-20: #630b03;
+  --primitive-error-30: #ad1406;
+  --primitive-error-40: #c51707;
+  --primitive-error-50: #f71c08;
+  --primitive-error-60: #f84a3a;
+  --primitive-error-70: #fb8e84;
+  --primitive-error-80: #fcada6;
+  --primitive-error-90: #fdd2ce;
+  --primitive-error-95: #fee8e6;
+  --primitive-error-98: #fff6f5;
+  --primitive-error-99: #fffafa;
+  --primitive-error-100: #ffffff;
+
+
+  /* ========================================================================
+     2. SPACING SCALE
+     ======================================================================== */
+  /* --- Spacing Scale --- */
+  --spacing-no: 0px;
+  --spacing-none: 0px;
+  --spacing-extra-small: 4px;
+  --spacing-small: 8px;
+  --spacing-medium: 12px;
+  --spacing-base: 16px;
+  --spacing-large: 20px;
+  --spacing-extra-large: 24px;
+  --spacing-very-large: 32px;
+
+  /* ========================================================================
+     3. SHADOWS & ELEVATION
+     ======================================================================== */
+  /* --- Shadows & Elevation --- */
+  --shadow-hard: 4px 6px 8px 0px #00000052;
+  --shadow-medium: 2px 4px 6px 0px #00000047;
+  --shadow-soft: 2px 2px 20px 0px #0000001f;
+
+  /* ========================================================================
+     4. TYPOGRAPHY SCALES
+     ======================================================================== */
+  /* --- Typography --- */
+  --font-display-large-size: 64px;
+  --font-display-large-line-height: 96px;
+  --font-display-large-weight: 500;
+  --font-display-large-letter-spacing: -4px;
+  --font-display-large-family: 'DM Sans', sans-serif;
+  --font-display-medium-size: 50px;
+  --font-display-medium-line-height: 75px;
+  --font-display-medium-weight: 500;
+  --font-display-medium-letter-spacing: -3px;
+  --font-display-medium-family: 'DM Sans', sans-serif;
+  --font-display-small-size: 40px;
+  --font-display-small-line-height: 60px;
+  --font-display-small-weight: 500;
+  --font-display-small-letter-spacing: -2.3px;
+  --font-display-small-family: 'DM Sans', sans-serif;
+  --font-headline-large-size: 32px;
+  --font-headline-large-line-height: 48px;
+  --font-headline-large-weight: 500;
+  --font-headline-large-letter-spacing: -1.55px;
+  --font-headline-large-family: 'DM Sans', sans-serif;
+  --font-headline-medium-size: 28px;
+  --font-headline-medium-line-height: 42px;
+  --font-headline-medium-weight: 500;
+  --font-headline-medium-letter-spacing: -1.35px;
+  --font-headline-medium-family: 'DM Sans', sans-serif;
+  --font-headline-small-size: 24px;
+  --font-headline-small-line-height: 36px;
+  --font-headline-small-weight: 500;
+  --font-headline-small-letter-spacing: -1px;
+  --font-headline-small-family: 'DM Sans', sans-serif;
+  --font-title-large-size: 22px;
+  --font-title-large-line-height: 33px;
+  --font-title-large-weight: 500;
+  --font-title-large-letter-spacing: -1px;
+  --font-title-large-family: 'DM Sans', sans-serif;
+  --font-title-medium-size: 16px;
+  --font-title-medium-line-height: 24px;
+  --font-title-medium-weight: 600;
+  --font-title-medium-letter-spacing: -0.85px;
+  --font-title-medium-family: 'DM Sans', sans-serif;
+  --font-title-small-size: 14px;
+  --font-title-small-line-height: 21px;
+  --font-title-small-weight: 400;
+  --font-title-small-letter-spacing: -0.75px;
+  --font-title-small-family: 'DM Sans', sans-serif;
+  --font-body-large-size: 16px;
+  --font-body-large-line-height: 24px;
+  --font-body-large-weight: 500;
+  --font-body-large-letter-spacing: -0.8px;
+  --font-body-large-family: 'DM Sans', sans-serif;
+  --font-body-medium-size: 14px;
+  --font-body-medium-line-height: 21px;
+  --font-body-medium-weight: 500;
+  --font-body-medium-letter-spacing: -0.75px;
+  --font-body-medium-family: 'DM Sans', sans-serif;
+  --font-body-small-size: 12px;
+  --font-body-small-line-height: 18px;
+  --font-body-small-weight: 400;
+  --font-body-small-letter-spacing: -0.75px;
+  --font-body-small-family: 'DM Sans', sans-serif;
+  --font-label-large-size: 14px;
+  --font-label-large-line-height: 21px;
+  --font-label-large-weight: 500;
+  --font-label-large-letter-spacing: -0.9px;
+  --font-label-large-family: 'DM Sans', sans-serif;
+  --font-label-medium-size: 12px;
+  --font-label-medium-line-height: 18px;
+  --font-label-medium-weight: 500;
+  --font-label-medium-letter-spacing: -0.9px;
+  --font-label-medium-family: 'DM Sans', sans-serif;
+  --font-label-small-size: 11px;
+  --font-label-small-line-height: 16.5px;
+  --font-label-small-weight: 500;
+  --font-label-small-letter-spacing: -0.8px;
+  --font-label-small-family: 'DM Sans', sans-serif;
+}
+
+/* ==========================================================================
+   COLOR ROLES: LIGHT THEME (DEFAULT)
+   ==========================================================================
+   Applied to :root by default and when [data-theme="light"] is active.
+   ========================================================================== */
+:root,
+[data-theme="light"] {
+  --color-primary: var(--primitive-key-primary);
+  --color-on-primary: var(--primitive-primary-100);
+  --color-primary-container: var(--primitive-primary-90);
+  --color-on-primary-container: var(--primitive-primary-30);
+  --color-secondary: var(--primitive-key-secondary);
+  --color-on-secondary: var(--primitive-secondary-100);
+  --color-secondary-container: var(--primitive-secondary-90);
+  --color-on-secondary-container: var(--primitive-secondary-30);
+  --color-tertiary: var(--primitive-key-tertiary);
+  --color-on-tertiary: var(--primitive-tertiary-100);
+  --color-tertiary-container: var(--primitive-tertiary-90);
+  --color-on-tertiary-container: var(--primitive-tertiary-30);
+  --color-error: var(--primitive-key-error);
+  --color-on-error: var(--primitive-error-100);
+  --color-error-container: var(--primitive-error-90);
+  --color-on-error-container: var(--primitive-error-30);
+  --color-surface-color: var(--primitive-neutral-98);
+  --color-surface: var(--color-surface-color);
+  --color-on-surface: var(--primitive-neutral-10);
+  --color-surface-variant: var(--primitive-neutral-variant-90);
+  --color-on-surface-variant: var(--primitive-neutral-variant-30);
+  --color-surface-container-highest: var(--primitive-neutral-90);
+  --color-surface-container-high: var(--primitive-neutral-90);
+  --color-surface-container: var(--primitive-neutral-95);
+  --color-surface-container-low: var(--primitive-neutral-98);
+  --color-surface-container-lowest: var(--primitive-neutral-100);
+  --color-inverse-surface: var(--primitive-neutral-20);
+  --color-inverse-on-surface: var(--primitive-neutral-95);
+  --color-surface-tint: var(--primitive-primary-40);
+}
+
+/* ==========================================================================
+   COLOR ROLES: DARK THEME (MANUAL OVERRIDE)
+   ==========================================================================
+   Activate by setting: <html data-theme="dark"> or on any container element.
+   ========================================================================== */
+[data-theme="dark"] {
+  --color-primary: var(--primitive-primary-80);
+  --color-on-primary: var(--primitive-primary-20);
+  --color-primary-container: var(--primitive-primary-30);
+  --color-on-primary-container: var(--primitive-primary-90);
+  --color-secondary: var(--primitive-secondary-80);
+  --color-on-secondary: var(--primitive-secondary-20);
+  --color-secondary-container: var(--primitive-secondary-30);
+  --color-on-secondary-container: var(--primitive-secondary-90);
+  --color-tertiary: var(--primitive-tertiary-80);
+  --color-on-tertiary: var(--primitive-tertiary-20);
+  --color-tertiary-container: var(--primitive-tertiary-30);
+  --color-on-tertiary-container: var(--primitive-tertiary-90);
+  --color-error: var(--primitive-error-80);
+  --color-on-error: var(--primitive-error-20);
+  --color-error-container: var(--primitive-error-30);
+  --color-on-error-container: var(--primitive-error-90);
+  --color-surface-color: var(--primitive-neutral-10);
+  --color-surface: var(--color-surface-color);
+  --color-on-surface: var(--primitive-neutral-90);
+  --color-surface-variant: var(--primitive-neutral-variant-30);
+  --color-on-surface-variant: var(--primitive-neutral-variant-80);
+  --color-surface-container-highest: var(--primitive-neutral-30);
+  --color-surface-container-high: var(--primitive-neutral-20);
+  --color-surface-container: var(--primitive-neutral-20);
+  --color-surface-container-low: var(--primitive-neutral-10);
+  --color-surface-container-lowest: var(--primitive-neutral-0);
+  --color-inverse-surface: var(--primitive-neutral-90);
+  --color-inverse-on-surface: var(--primitive-neutral-20);
+  --color-surface-tint: var(--primitive-primary-80);
+}
+
+/* ==========================================================================
+   COLOR ROLES: DARK THEME (SYSTEM PREFERENCE)
+   ==========================================================================
+   Automatically switches to Dark Theme when the OS preference is dark,
+   unless user explicitly forced light mode with [data-theme="light"].
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-primary: var(--primitive-primary-80);
+    --color-on-primary: var(--primitive-primary-20);
+    --color-primary-container: var(--primitive-primary-30);
+    --color-on-primary-container: var(--primitive-primary-90);
+    --color-secondary: var(--primitive-secondary-80);
+    --color-on-secondary: var(--primitive-secondary-20);
+    --color-secondary-container: var(--primitive-secondary-30);
+    --color-on-secondary-container: var(--primitive-secondary-90);
+    --color-tertiary: var(--primitive-tertiary-80);
+    --color-on-tertiary: var(--primitive-tertiary-20);
+    --color-tertiary-container: var(--primitive-tertiary-30);
+    --color-on-tertiary-container: var(--primitive-tertiary-90);
+    --color-error: var(--primitive-error-80);
+    --color-on-error: var(--primitive-error-20);
+    --color-error-container: var(--primitive-error-30);
+    --color-on-error-container: var(--primitive-error-90);
+    --color-surface-color: var(--primitive-neutral-10);
+    --color-surface: var(--color-surface-color);
+    --color-on-surface: var(--primitive-neutral-90);
+    --color-surface-variant: var(--primitive-neutral-variant-30);
+    --color-on-surface-variant: var(--primitive-neutral-variant-80);
+    --color-surface-container-highest: var(--primitive-neutral-30);
+    --color-surface-container-high: var(--primitive-neutral-20);
+    --color-surface-container: var(--primitive-neutral-20);
+    --color-surface-container-low: var(--primitive-neutral-10);
+    --color-surface-container-lowest: var(--primitive-neutral-0);
+    --color-inverse-surface: var(--primitive-neutral-90);
+    --color-inverse-on-surface: var(--primitive-neutral-20);
+    --color-surface-tint: var(--primitive-primary-80);
+  }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY UTILITY CLASSES (OPTIONAL HELPERS)
+   ========================================================================== */
+.display-large {
+
+  font-family: var(--font-display-large-family);
+
+  font-size: var(--font-display-large-size);
+
+  line-height: var(--font-display-large-line-height);
+
+  font-weight: var(--font-display-large-weight);
+
+  letter-spacing: var(--font-display-large-letter-spacing);
+
+}
+
+.display-medium {
+
+  font-family: var(--font-display-medium-family);
+
+  font-size: var(--font-display-medium-size);
+
+  line-height: var(--font-display-medium-line-height);
+
+  font-weight: var(--font-display-medium-weight);
+
+  letter-spacing: var(--font-display-medium-letter-spacing);
+
+}
+
+.display-small {
+
+  font-family: var(--font-display-small-family);
+
+  font-size: var(--font-display-small-size);
+
+  line-height: var(--font-display-small-line-height);
+
+  font-weight: var(--font-display-small-weight);
+
+  letter-spacing: var(--font-display-small-letter-spacing);
+
+}
+
+.headline-large {
+
+  font-family: var(--font-headline-large-family);
+
+  font-size: var(--font-headline-large-size);
+
+  line-height: var(--font-headline-large-line-height);
+
+  font-weight: var(--font-headline-large-weight);
+
+  letter-spacing: var(--font-headline-large-letter-spacing);
+
+}
+
+.headline-medium {
+
+  font-family: var(--font-headline-medium-family);
+
+  font-size: var(--font-headline-medium-size);
+
+  line-height: var(--font-headline-medium-line-height);
+
+  font-weight: var(--font-headline-medium-weight);
+
+  letter-spacing: var(--font-headline-medium-letter-spacing);
+
+}
+
+.headline-small {
+
+  font-family: var(--font-headline-small-family);
+
+  font-size: var(--font-headline-small-size);
+
+  line-height: var(--font-headline-small-line-height);
+
+  font-weight: var(--font-headline-small-weight);
+
+  letter-spacing: var(--font-headline-small-letter-spacing);
+
+}
+
+.title-large {
+
+  font-family: var(--font-title-large-family);
+
+  font-size: var(--font-title-large-size);
+
+  line-height: var(--font-title-large-line-height);
+
+  font-weight: var(--font-title-large-weight);
+
+  letter-spacing: var(--font-title-large-letter-spacing);
+
+}
+
+.title-medium {
+
+  font-family: var(--font-title-medium-family);
+
+  font-size: var(--font-title-medium-size);
+
+  line-height: var(--font-title-medium-line-height);
+
+  font-weight: var(--font-title-medium-weight);
+
+  letter-spacing: var(--font-title-medium-letter-spacing);
+
+}
+
+.title-small {
+
+  font-family: var(--font-title-small-family);
+
+  font-size: var(--font-title-small-size);
+
+  line-height: var(--font-title-small-line-height);
+
+  font-weight: var(--font-title-small-weight);
+
+  letter-spacing: var(--font-title-small-letter-spacing);
+
+}
+
+.body-large {
+
+  font-family: var(--font-body-large-family);
+
+  font-size: var(--font-body-large-size);
+
+  line-height: var(--font-body-large-line-height);
+
+  font-weight: var(--font-body-large-weight);
+
+  letter-spacing: var(--font-body-large-letter-spacing);
+
+}
+
+.body-medium {
+
+  font-family: var(--font-body-medium-family);
+
+  font-size: var(--font-body-medium-size);
+
+  line-height: var(--font-body-medium-line-height);
+
+  font-weight: var(--font-body-medium-weight);
+
+  letter-spacing: var(--font-body-medium-letter-spacing);
+
+}
+
+.body-small {
+
+  font-family: var(--font-body-small-family);
+
+  font-size: var(--font-body-small-size);
+
+  line-height: var(--font-body-small-line-height);
+
+  font-weight: var(--font-body-small-weight);
+
+  letter-spacing: var(--font-body-small-letter-spacing);
+
+}
+
+.label-large {
+
+  font-family: var(--font-label-large-family);
+
+  font-size: var(--font-label-large-size);
+
+  line-height: var(--font-label-large-line-height);
+
+  font-weight: var(--font-label-large-weight);
+
+  letter-spacing: var(--font-label-large-letter-spacing);
+
+}
+
+.label-medium {
+
+  font-family: var(--font-label-medium-family);
+
+  font-size: var(--font-label-medium-size);
+
+  line-height: var(--font-label-medium-line-height);
+
+  font-weight: var(--font-label-medium-weight);
+
+  letter-spacing: var(--font-label-medium-letter-spacing);
+
+}
+
+.label-small {
+
+  font-family: var(--font-label-small-family);
+
+  font-size: var(--font-label-small-size);
+
+  line-height: var(--font-label-small-line-height);
+
+  font-weight: var(--font-label-small-weight);
+
+  letter-spacing: var(--font-label-small-letter-spacing);
+
+}
