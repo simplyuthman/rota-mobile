@@ -13,7 +13,7 @@
     "dev:api": "pnpm --filter @rota/api dev",
     "tokens": "pnpm --filter @rota/mobile tokens",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "lint": "pnpm -r --if-present run lint",
+    "lint": "eslint .",
     "test": "pnpm -r --if-present run test",
     "migrate": "node services/api/scripts/migrate.js",
     "migrate:check": "node services/api/scripts/migrate.js --check"

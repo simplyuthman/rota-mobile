@@ -10,7 +10,6 @@
     "dev": "tsx watch src/app.ts",
     "build": "tsc --project tsconfig.json",
     "start": "node dist/server.js",
-    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "migrate": "node scripts/migrate.js",
