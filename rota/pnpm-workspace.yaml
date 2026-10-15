@@ -5,7 +5,8 @@ packages:
   - 'sites/*'
 allowBuilds:
   '@sentry/cli': true
-  argon2: set this to true or false
+  argon2: true
+  '@node-rs/argon2': true
   esbuild: true
 
 minimumReleaseAgeExclude:
