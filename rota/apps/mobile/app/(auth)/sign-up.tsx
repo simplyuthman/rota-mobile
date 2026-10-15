@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { User, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react-native';
+import { AlertCircle, ArrowRight } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { InputField } from '../../src/components/InputField';
 import { PrimaryButton } from '../../src/components/PrimaryButton';
@@ -49,7 +49,7 @@ export default function SignUpScreen() {
         email: email.trim(),
         password,
       });
-      router.replace('/(tabs)' as any);
+      router.replace('/(tabs)' as never);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
       setErrorMessage(message);

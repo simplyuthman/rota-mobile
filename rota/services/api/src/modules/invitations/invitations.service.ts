@@ -106,9 +106,8 @@ export const invitationsService = {
           inviteUrl,
           inviteCode: rawToken,
         });
-      } catch (err) {
-        // Log and proceed; the token can still be copied/shared
-        console.error('Failed to send invitation email:', err);
+      } catch (_err) {
+        // Proceed even if email sending fails; token can still be shared manually
       }
     }
 
