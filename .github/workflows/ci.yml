@@ -89,6 +89,9 @@ jobs:
       - name: Run database migrations
         run: pnpm migrate
 
+      - name: Build shared packages
+        run: pnpm --filter "@rota/config" --filter "@rota/contracts" build
+
       - name: Typecheck
         run: pnpm typecheck
 
