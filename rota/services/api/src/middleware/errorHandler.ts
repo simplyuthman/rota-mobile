@@ -70,68 +70,74 @@ export class RotaError extends Error {
 
 // ─── Error handler plugin ─────────────────────────────────────────────────────
 
-export async function errorHandlerPlugin(fastify: FastifyInstance): Promise<void> {
-  fastify.setErrorHandler(
-    (error: FastifyError | RotaError | ZodError | Error, request: FastifyRequest, reply: FastifyReply) => {
-      const requestId = String(request.id);
+export function errorHandler(
+  error: FastifyError | RotaError | ZodError | Error,
+  request: FastifyRequest,
+  reply: FastifyReply
+): void {
+  const requestId = String(request.id ?? 'unknown');
 
-      // Zod validation errors
-      if (error instanceof ZodError) {
-        const issues = error.issues.map((i) => ({
-          field: i.path.join('.'),
-          message: i.message,
-        }));
-        void reply.status(422).send({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Validation failed',
-            issues,
-            requestId,
-          },
-        });
-        return;
-      }
+  // Zod validation errors
+  if (error instanceof ZodError) {
+    const issues = error.issues.map((i) => ({
+      field: i.path.join('.'),
+      message: i.message,
+    }));
+    void reply.status(422).send({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        issues,
+        requestId,
+      },
+    });
+    return;
+  }
 
-      // Domain errors
-      if (error instanceof RotaError) {
-        if (error.retryAfter !== undefined) {
-          void reply.header('Retry-After', String(error.retryAfter));
-        }
-        void reply.status(error.status).send({
-          error: {
-            code: error.code,
-            message: error.message,
-            requestId,
-          },
-        });
-        return;
-      }
+  // Domain errors (RotaError, or any error with code and status/statusCode)
+  const anyErr = error as any;
+  if (anyErr?.code && (typeof anyErr.status === 'number' || typeof anyErr.statusCode === 'number')) {
+    const status = anyErr.status ?? anyErr.statusCode;
+    if (anyErr.retryAfter !== undefined) {
+      void reply.header('Retry-After', String(anyErr.retryAfter));
+    }
+    void reply.status(status).send({
+      error: {
+        code: anyErr.code,
+        message: anyErr.message || 'Operation failed',
+        requestId,
+      },
+    });
+    return;
+  }
 
-      // Fastify built-in errors (e.g. 404 route not found, 405 method not allowed)
-      const fastifyError = error as FastifyError;
-      if (fastifyError.statusCode !== undefined && fastifyError.statusCode < 500) {
-        void reply.status(fastifyError.statusCode).send({
-          error: {
-            code: fastifyError.code ?? 'ERROR',
-            message: fastifyError.message,
-            requestId,
-          },
-        });
-        return;
-      }
+  // Fastify built-in errors (e.g. 404 route not found, 405 method not allowed)
+  const fastifyError = error as FastifyError;
+  if (fastifyError.statusCode !== undefined && fastifyError.statusCode < 500) {
+    void reply.status(fastifyError.statusCode).send({
+      error: {
+        code: fastifyError.code ?? 'ERROR',
+        message: fastifyError.message,
+        requestId,
+      },
+    });
+    return;
+  }
 
-      // Unexpected errors — log at error level, scrub message in production
-      request.log.error({ err: error, requestId }, 'Unhandled server error');
+  // Unexpected errors — log at error level, scrub message in production
+  request.log.error({ err: error, requestId }, 'Unhandled server error');
 
-      void reply.status(500).send({
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: config.isProduction
-            ? 'An unexpected error occurred'
-            : (error.message ?? 'An unexpected error occurred'),
-          requestId,
-        },
-      });
+  void reply.status(500).send({
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: config.isProduction
+        ? 'An unexpected error occurred'
+        : (error.message ?? 'An unexpected error occurred'),
+      requestId,
     },
-  );
+  });
+}
+
+export async function errorHandlerPlugin(fastify: FastifyInstance): Promise<void> {
+  fastify.setErrorHandler(errorHandler);
 }

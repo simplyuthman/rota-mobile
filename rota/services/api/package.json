@@ -17,15 +17,20 @@
     "migrate:check": "node scripts/migrate.js --check"
   },
   "dependencies": {
-    "fastify": "^5.0.0",
     "@fastify/cors": "^10.0.0",
+    "@node-rs/argon2": "^2.2.2",
+    "@rota/contracts": "workspace:*",
+    "fastify": "^5.0.0",
+    "ioredis": "^5.4.0",
+    "jsonwebtoken": "^9.0.3",
     "kysely": "^0.27.0",
     "pg": "^8.13.0",
-    "ioredis": "^5.4.0",
-    "zod": "^3.23.0",
-    "pino": "^9.0.0"
+    "pino": "^9.0.0",
+    "resend": "^6.33.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
     "tsx": "^4.19.0",

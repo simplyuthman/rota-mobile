@@ -354,13 +354,13 @@ export interface ProductEventsTable {
   team_id: string;
   actor_user_id: string | null;
   event_type:
-    | 'team_created'
-    | 'invite_sent'
-    | 'invite_accepted'
-    | 'shift_published'
-    | 'swap_requested'
-    | 'swap_decided'
-    | 'plan_changed';
+  | 'team_created'
+  | 'invite_sent'
+  | 'invite_accepted'
+  | 'shift_published'
+  | 'swap_requested'
+  | 'swap_decided'
+  | 'plan_changed';
   props: unknown; // jsonb
   created_at: DbTimestamp;
 }

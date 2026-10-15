@@ -17,9 +17,14 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { config } from './config/env.js';
-import { requestIdPlugin } from './middleware/requestId.js';
-import { errorHandlerPlugin } from './middleware/errorHandler.js';
+import { requestIdHook } from './middleware/requestId.js';
+import { errorHandler } from './middleware/errorHandler.js';
 import { healthRoutes } from './modules/health/health.routes.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
+import { teamRoutes } from './modules/teams/teams.routes.js';
+import { membershipRoutes } from './modules/memberships/memberships.routes.js';
+import { invitationRoutes } from './modules/invitations/invitations.routes.js';
+import { shiftRoutes } from './modules/shifts/shifts.routes.js';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -50,9 +55,11 @@ export async function buildApp() {
     },
   });
 
-  // ── Plugins ──────────────────────────────────────────────────────────────
-  await fastify.register(requestIdPlugin);
+  // ── Global Hooks & Error Handler (Root Level) ───────────────────────────
+  fastify.addHook('onRequest', requestIdHook);
+  fastify.setErrorHandler(errorHandler);
 
+  // ── Plugins ──────────────────────────────────────────────────────────────
   await fastify.register(cors, {
     origin: config.corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -61,12 +68,20 @@ export async function buildApp() {
     credentials: true,
   });
 
-  await fastify.register(errorHandlerPlugin);
-
   // ── Routes ───────────────────────────────────────────────────────────────
   // All routes are mounted under /v1 except health probes (TRD §5)
   await fastify.register(healthRoutes);
-  // Phase 2+ modules will be registered here with prefix: '/v1'
+
+  await fastify.register(
+    async (v1) => {
+      await v1.register(authRoutes);
+      await v1.register(teamRoutes);
+      await v1.register(membershipRoutes);
+      await v1.register(invitationRoutes);
+      await v1.register(shiftRoutes);
+    },
+    { prefix: '/v1' }
+  );
 
   return fastify;
 }

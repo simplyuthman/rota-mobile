@@ -21,18 +21,21 @@ import { randomUUID } from 'node:crypto';
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function requestIdPlugin(fastify: FastifyInstance): Promise<void> {
-  fastify.addHook('onRequest', async (request, reply) => {
-    const incoming = request.headers['x-request-id'];
-    const id =
-      typeof incoming === 'string' && UUID_REGEX.test(incoming)
-        ? incoming
-        : randomUUID();
+import type { FastifyRequest, FastifyReply } from 'fastify';
 
-    // Fastify exposes request.id for pino logging.
-    // @ts-ignore: Fastify's RequestGenericInterface doesn't expose id as writable
-    // See: https://github.com/fastify/fastify/discussions/3802
-    request.id = id;
-    void reply.header('X-Request-Id', id);
-  });
+export const requestIdHook = async (request: FastifyRequest, reply: FastifyReply) => {
+  const incoming = request.headers['x-request-id'];
+  const id =
+    typeof incoming === 'string' && UUID_REGEX.test(incoming)
+      ? incoming
+      : randomUUID();
+
+  // Fastify exposes request.id for pino logging.
+  // @ts-ignore: Fastify's RequestGenericInterface doesn't expose id as writable
+  request.id = id;
+  void reply.header('X-Request-Id', id);
+};
+
+export async function requestIdPlugin(fastify: FastifyInstance): Promise<void> {
+  fastify.addHook('onRequest', requestIdHook);
 }

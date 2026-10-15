@@ -10,7 +10,8 @@
 import axios, { type AxiosRequestConfig, type AxiosError } from 'axios';
 import { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken, clearAuthTokens } from '../storage/secureStore';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const RAW_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = RAW_API_URL.endsWith('/v1') ? RAW_API_URL : `${RAW_API_URL.replace(/\/$/, '')}/v1`;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
