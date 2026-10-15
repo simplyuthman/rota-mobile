@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rota
+          POSTGRES_PASSWORD: rota_local_dev
+          POSTGRES_DB: control_plane
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis_cache:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis_queue:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      HOST: 127.0.0.1
+      DATABASE_CONTROL_URL: postgresql://rota:rota_local_dev@localhost:5432/control_plane
+      DATABASE_CONTROL_READ_URL: postgresql://rota:rota_local_dev@localhost:5432/control_plane
+      DATABASE_SHARD_0_URL: postgresql://rota:rota_local_dev@localhost:5432/rota_shard_0
+      DATABASE_SHARD_0_READ_URL: postgresql://rota:rota_local_dev@localhost:5432/rota_shard_0
+      DATABASE_SHARD_1_URL: postgresql://rota:rota_local_dev@localhost:5432/rota_shard_1
+      DATABASE_SHARD_1_READ_URL: postgresql://rota:rota_local_dev@localhost:5432/rota_shard_1
+      REDIS_CACHE_URL: redis://localhost:6379
+      REDIS_QUEUE_URL: redis://localhost:6380
+      JWT_SECRET: super-secret-jwt-key-minimum-32-chars-long-rota-mvp!
+      REFRESH_TOKEN_SECRET: super-secret-refresh-key-minimum-32-chars-long-rota-mvp!
+      RESEND_API_KEY: re_test_1234567890abcdef12345678
+      EMAIL_FROM: onboarding@resend.dev
+
+    defaults:
+      run:
+        working-directory: rota
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: 'rota/.nvmrc'
+          cache: 'pnpm'
+          cache-dependency-path: 'rota/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize PostgreSQL databases
+        run: |
+          PGPASSWORD=rota_local_dev psql -h localhost -U rota -d control_plane -f docker/postgres-init.sql
+
+      - name: Run database migrations
+        run: pnpm migrate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test
