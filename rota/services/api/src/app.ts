@@ -25,15 +25,14 @@ import { teamRoutes } from './modules/teams/teams.routes.js';
 import { membershipRoutes } from './modules/memberships/memberships.routes.js';
 import { invitationRoutes } from './modules/invitations/invitations.routes.js';
 import { shiftRoutes } from './modules/shifts/shifts.routes.js';
+import { swapRoutes } from './modules/swaps/swaps.routes.js';
+import { activityRoutes } from './modules/activity/activity.routes.js';
 
 export async function buildApp() {
   const fastify = Fastify({
     // pino logger with request-level correlation (O-01)
     logger: {
       level: config.isDevelopment ? 'debug' : 'info',
-      ...(config.isDevelopment
-        ? { transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } } }
-        : {}),
       // Redact sensitive fields from logs (O-01, S-02)
       redact: {
         paths: [
@@ -79,6 +78,8 @@ export async function buildApp() {
       await v1.register(membershipRoutes);
       await v1.register(invitationRoutes);
       await v1.register(shiftRoutes);
+      await v1.register(swapRoutes);
+      await v1.register(activityRoutes);
     },
     { prefix: '/v1' }
   );

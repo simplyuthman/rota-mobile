@@ -218,3 +218,138 @@ export const MeResponseSchema = z.object({
   teams: z.array(TeamDtoSchema),
 });
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+
+// -----------------------------------------------------------------------------
+// Shift DTOs (PRD §6.3, AGENTS.md §3.2 A-07, §3.5 D-02)
+// -----------------------------------------------------------------------------
+export const ShiftStatusSchema = z.enum(['draft', 'published', 'cancelled']);
+export type ShiftStatus = z.infer<typeof ShiftStatusSchema>;
+
+export const ShiftDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  title: z.string(),
+  locationLabel: z.string().nullable(),
+  /** notes: null for Staff viewers (A-07). Omitted entirely in cached calendar (D-03). */
+  notes: z.string().nullable(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+  status: ShiftStatusSchema,
+  createdByMembershipId: z.string().uuid(),
+  publishedAt: z.string().nullable(),
+  cancelledAt: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type ShiftDto = z.infer<typeof ShiftDtoSchema>;
+
+/** Staff-facing DTO: notes field is stripped (A-07). */
+export const ShiftPublicDtoSchema = ShiftDtoSchema.omit({ notes: true });
+export type ShiftPublicDto = z.infer<typeof ShiftPublicDtoSchema>;
+
+export const CreateShiftRequestSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  locationLabel: z.string().max(200).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
+  startsAt: z.string().datetime({ message: 'startsAt must be an ISO-8601 datetime' }),
+  endsAt: z.string().datetime({ message: 'endsAt must be an ISO-8601 datetime' }),
+  /** membershipId to assign upon creation. */
+  assignMembershipId: z.string().uuid().optional(),
+});
+export type CreateShiftRequest = z.infer<typeof CreateShiftRequestSchema>;
+
+export const UpdateShiftRequestSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  locationLabel: z.string().max(200).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().optional(),
+});
+export type UpdateShiftRequest = z.infer<typeof UpdateShiftRequestSchema>;
+
+export const PublishShiftRequestSchema = z.object({
+  assignMembershipId: z.string().uuid().optional(),
+});
+export type PublishShiftRequest = z.infer<typeof PublishShiftRequestSchema>;
+
+// -----------------------------------------------------------------------------
+// Swap Request DTOs (PRD §6.5, AGENTS.md §3.2 A-10)
+// -----------------------------------------------------------------------------
+export const SwapStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'rejected',
+  'declined',
+  'withdrawn',
+  'expired',
+]);
+export type SwapStatus = z.infer<typeof SwapStatusSchema>;
+
+export const SwapRequestDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  shiftId: z.string().uuid(),
+  requesterMembershipId: z.string().uuid(),
+  targetMembershipId: z.string().uuid(),
+  status: SwapStatusSchema,
+  targetAcceptedAt: z.string().nullable(),
+  expiredReason: z.string().nullable(),
+  message: z.string().nullable(),
+  reviewedByMembershipId: z.string().uuid().nullable(),
+  reviewedAt: z.string().nullable(),
+  decisionNote: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type SwapRequestDto = z.infer<typeof SwapRequestDtoSchema>;
+
+export const CreateSwapRequestSchema = z.object({
+  targetMembershipId: z.string().uuid(),
+  message: z.string().max(500).optional(),
+  idempotencyKey: z.string().min(1).max(100).optional(),
+});
+export type CreateSwapRequest = z.infer<typeof CreateSwapRequestSchema>;
+
+export const RespondSwapRequestSchema = z.object({
+  /** 'accept' or 'decline' — by target only. */
+  action: z.enum(['accept', 'decline']),
+});
+export type RespondSwapRequest = z.infer<typeof RespondSwapRequestSchema>;
+
+export const ReviewSwapRequestSchema = z.object({
+  /** 'approve' or 'reject' — by Owner/Manager after target accepted. */
+  action: z.enum(['approve', 'reject']),
+  decisionNote: z.string().max(500).optional(),
+});
+export type ReviewSwapRequest = z.infer<typeof ReviewSwapRequestSchema>;
+
+// =============================================================================
+// Activity Feed Schemas (PRD §6.3, Rules D-01, A-08)
+// =============================================================================
+
+export const ActivityEventDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  actorMembershipId: z.string().uuid().nullable(),
+  eventType: z.string(),
+  subjectType: z.string().nullable(),
+  subjectId: z.string().uuid().nullable(),
+  params: z.record(z.unknown()),
+  visibility: z.enum(['team', 'managers', 'owner', 'participants']),
+  participantMembershipIds: z.array(z.string().uuid()),
+  createdAt: z.string(),
+});
+export type ActivityEventDto = z.infer<typeof ActivityEventDtoSchema>;
+
+export const ActivityFeedQuerySchema = z.object({
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+export type ActivityFeedQuery = z.infer<typeof ActivityFeedQuerySchema>;
+
+export const ActivityFeedResponseSchema = z.object({
+  items: z.array(ActivityEventDtoSchema),
+  nextCursor: z.string().nullable(),
+});
+export type ActivityFeedResponse = z.infer<typeof ActivityFeedResponseSchema>;
+

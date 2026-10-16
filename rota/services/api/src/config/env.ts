@@ -11,12 +11,13 @@
  */
 
 import { z } from 'zod';
+import { resolve } from 'node:path';
 
 const envSchema = z.object({
   // ── Runtime ──────────────────────────────────────────────────────────────
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
-  HOST: z.string().default('127.0.0.1'),
+  HOST: z.string().default('0.0.0.0'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 
   // ── PostgreSQL — Control Plane ────────────────────────────────────────────
@@ -42,17 +43,17 @@ const envSchema = z.object({
   REFRESH_TOKEN_SECRET: z.string().min(32),
 
   // ── Email — Resend (docs/decisions/002-email-provider.md) ────────────────
-  RESEND_API_KEY: z.string().startsWith('re_'),
-  EMAIL_FROM: z.string().email(),
+  RESEND_API_KEY: z.string().startsWith('re_').default('re_local_dev_mock_key'),
+  EMAIL_FROM: z.string().email().default('onboarding@resend.dev'),
 
   // ── Payments — Flutterwave (Phase 7, test mode only) ─────────────────────
   // Optional during Tier 1 build; validated more strictly in Phase 7.
-  FLUTTERWAVE_SECRET_KEY: z.string().optional(),
-  FLUTTERWAVE_WEBHOOK_SECRET: z.string().optional(),
+  FLUTTERWAVE_SECRET_KEY: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
+  FLUTTERWAVE_WEBHOOK_SECRET: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
 
   // ── Observability — Sentry ───────────────────────────────────────────────
   // Optional during local development.
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -63,6 +64,22 @@ export type Env = z.infer<typeof envSchema>;
  * Throws at startup if any required variable is missing or malformed.
  */
 function loadEnv(): Env {
+  if (!process.env['DATABASE_CONTROL_URL'] && typeof process.loadEnvFile === 'function') {
+    const candidates = [
+      resolve(process.cwd(), '.env'),
+      resolve(process.cwd(), '../../.env'),
+      resolve(process.cwd(), '..', '.env'),
+    ];
+    for (const file of candidates) {
+      try {
+        process.loadEnvFile(file);
+        if (process.env['DATABASE_CONTROL_URL']) break;
+      } catch {
+        // try next
+      }
+    }
+  }
+
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {

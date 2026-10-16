@@ -40,6 +40,10 @@ export class MockEmailAdapter implements EmailProvider {
       payload: { code: params.code },
       sentAt: new Date(),
     });
+    if (env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
+      console.log(`\n📨 [DEV EMAIL] Verification Code for ${params.to}: ${params.code}\n`);
+    }
   }
 
   async sendMagicLink(params: { to: string; magicLinkUrl: string }): Promise<void> {
@@ -49,6 +53,10 @@ export class MockEmailAdapter implements EmailProvider {
       payload: { magicLinkUrl: params.magicLinkUrl },
       sentAt: new Date(),
     });
+    if (env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
+      console.log(`\n📨 [DEV EMAIL] Magic Link for ${params.to}: ${params.magicLinkUrl}\n`);
+    }
   }
 
   async sendPasswordReset(params: { to: string; resetUrl: string }): Promise<void> {
@@ -58,6 +66,10 @@ export class MockEmailAdapter implements EmailProvider {
       payload: { resetUrl: params.resetUrl },
       sentAt: new Date(),
     });
+    if (env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
+      console.log(`\n📨 [DEV EMAIL] Password Reset Link for ${params.to}: ${params.resetUrl}\n`);
+    }
   }
 
   async sendTeamInvitation(params: {
@@ -73,6 +85,10 @@ export class MockEmailAdapter implements EmailProvider {
       payload: params,
       sentAt: new Date(),
     });
+    if (env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
+      console.log(`\n📨 [DEV EMAIL] Team Invitation for ${params.to} | Team: ${params.teamName} | Code: ${params.inviteCode} | URL: ${params.inviteUrl}\n`);
+    }
   }
 
   clear(): void {
@@ -131,7 +147,9 @@ export class ResendEmailAdapter implements EmailProvider {
 }
 
 let activeEmailAdapter: EmailProvider =
-  env.NODE_ENV === 'test' ? new MockEmailAdapter() : new ResendEmailAdapter();
+  env.NODE_ENV === 'test' || env.RESEND_API_KEY.includes('mock')
+    ? new MockEmailAdapter()
+    : new ResendEmailAdapter();
 
 export function getEmailAdapter(): EmailProvider {
   return activeEmailAdapter;

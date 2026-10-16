@@ -15,7 +15,6 @@ import {
   StyleSheet,
   type TextInputProps,
   type ViewStyle,
-  type TextStyle,
 } from 'react-native';
 import { useTheme, type ThemeContextValue } from '../theme';
 

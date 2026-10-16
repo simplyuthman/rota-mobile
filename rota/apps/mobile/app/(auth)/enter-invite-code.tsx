@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Users, AlertCircle, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react-native';
+import { AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { InputField } from '../../src/components/InputField';
 import { PrimaryButton } from '../../src/components/PrimaryButton';
@@ -39,7 +39,7 @@ export default function EnterInviteCodeScreen() {
 
     try {
       await acceptMutation.mutateAsync({ token: trimmedToken });
-      router.replace('/(tabs)' as any);
+      router.replace('/(tabs)' as never);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to join team. The invitation may be expired or already used.';
       setErrorMessage(message);

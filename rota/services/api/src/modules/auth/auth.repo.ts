@@ -15,7 +15,7 @@ import type {
   UserTeamIndexTable,
   UserSettingsTable,
 } from '../../db/schema.js';
-import type { Selectable, Insertable, Updateable } from 'kysely';
+import type { Selectable, Insertable } from 'kysely';
 
 export type UserRow = Selectable<UsersTable>;
 export type NewUserRow = Insertable<UsersTable>;

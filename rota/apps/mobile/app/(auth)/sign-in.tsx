@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, Sparkles, AlertCircle, ArrowRight } from 'lucide-react-native';
+import { Lock, Sparkles, AlertCircle, ArrowRight } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { InputField } from '../../src/components/InputField';
 import { PrimaryButton } from '../../src/components/PrimaryButton';
@@ -203,7 +203,7 @@ export default function SignInScreen() {
             accessibilityRole="button"
             accessibilityLabel="Have an invitation code?"
             style={styles.secondaryLink}
-            onPress={() => router.push('/(auth)/enter-invite-code' as any)}
+            onPress={() => router.push('/(auth)/enter-invite-code' as never)}
           >
             <Text style={styles.secondaryLinkText}>
               Invited by a manager? <Text style={styles.linkHighlight}>Enter Code</Text>
@@ -214,7 +214,7 @@ export default function SignInScreen() {
             accessibilityRole="button"
             accessibilityLabel="Create a new account"
             style={styles.secondaryLink}
-            onPress={() => router.push('/(auth)/sign-up' as any)}
+            onPress={() => router.push('/(auth)/sign-up' as never)}
           >
             <Text style={styles.secondaryLinkText}>
               Need a team account? <Text style={styles.linkHighlight}>Sign Up</Text>

@@ -11,7 +11,6 @@ import { invitationsRepo, SeatLimitError } from './invitations.repo.js';
 import { teamsRepo } from '../teams/teams.repo.js';
 import { authRepo } from '../auth/auth.repo.js';
 import { getEmailAdapter } from '../../adapters/email/index.js';
-import { env } from '../../config/env.js';
 import type { InvitationDto, TeamMembershipDto } from '@rota/contracts';
 
 export class InvitationError extends Error {

@@ -29,6 +29,14 @@ const MIGRATIONS_DIR = join(__dirname, '..', 'migrations');
 const isCheck = process.argv.includes('--check');
 
 // ─── Connection strings from environment ──────────────────────────────────────
+if (!process.env.DATABASE_CONTROL_URL && typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile(join(__dirname, '..', '..', '..', '.env'));
+  } catch {
+    // .env not present or already loaded
+  }
+}
+
 const {
   DATABASE_CONTROL_URL,
   DATABASE_SHARD_0_URL,

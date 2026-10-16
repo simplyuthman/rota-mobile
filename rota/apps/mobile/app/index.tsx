@@ -9,9 +9,9 @@ export default function WelcomeSplashScreen() {
   const handleFinish = async () => {
     const token = await getAccessToken();
     if (token) {
-      router.replace('/(tabs)' as any);
+      router.replace('/(tabs)' as never);
     } else {
-      router.replace('/(auth)/sign-in' as any);
+      router.replace('/(auth)/sign-in' as never);
     }
   };
 

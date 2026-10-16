@@ -10,8 +10,11 @@
 import axios, { type AxiosRequestConfig, type AxiosError } from 'axios';
 import { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken, clearAuthTokens } from '../storage/secureStore';
 
-const RAW_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
-const API_BASE_URL = RAW_API_URL.endsWith('/v1') ? RAW_API_URL : `${RAW_API_URL.replace(/\/$/, '')}/v1`;
+let rawUrl = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000').trim();
+if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+  rawUrl = `http://${rawUrl}`;
+}
+const API_BASE_URL = rawUrl.endsWith('/v1') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/v1`;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -75,6 +78,14 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       }
+    }
+
+    // Enhance error message for user visibility
+    const errorData = error.response?.data as { error?: { message?: string } } | undefined;
+    if (errorData?.error?.message) {
+      error.message = errorData.error.message;
+    } else if (error.code === 'ERR_NETWORK' || !error.response) {
+      error.message = `Network error: Cannot reach ${API_BASE_URL}. Verify IP address, Wi-Fi connection, and firewall settings.`;
     }
 
     return Promise.reject(error);

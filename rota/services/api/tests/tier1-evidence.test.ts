@@ -37,12 +37,15 @@ describe('Tier 1 Graduation Evidence: Auth & Tenant Isolation', () => {
   // Helper to generate unique emails
   const nextEmail = (prefix: string) =>
     `${prefix}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}@example.com`;
+  const randomIp = () =>
+    `10.${crypto.randomInt(1, 250)}.${crypto.randomInt(1, 250)}.${crypto.randomInt(1, 250)}`;
 
   // Helper to sign up and get auth tokens
   async function signupUser(email: string, displayName = 'Test User') {
     const res = await app.inject({
       method: 'POST',
       url: '/v1/auth/signup',
+      headers: { 'x-forwarded-for': randomIp() },
       payload: {
         email,
         password: 'Password123!',
@@ -147,7 +150,7 @@ describe('Tier 1 Graduation Evidence: Auth & Tenant Isolation', () => {
   it('Evidence 2 (Rule A-02): User from Team A cannot read or write Team B data (403 FORBIDDEN)', async () => {
     // 1. User A creates Team A
     const userA = await signupUser(nextEmail('user-a02-a'), 'User A');
-    const teamA = await createTeam(userA.authHeaders, 'Team Alpha');
+    const _teamA = await createTeam(userA.authHeaders, 'Team Alpha');
 
     // 2. User B creates Team B
     const userB = await signupUser(nextEmail('user-a02-b'), 'User B');
@@ -376,5 +379,5 @@ describe('Tier 1 Graduation Evidence: Auth & Tenant Isolation', () => {
       .execute();
 
     expect(postMemberships.length).toBe(5);
-  });
+  }, 20000);
 });

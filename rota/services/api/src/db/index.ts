@@ -25,10 +25,12 @@
  * =============================================================================
  */
 
-import { Kysely, PostgresDialect, sql } from 'kysely';
+import { Kysely, PostgresDialect, sql, type Transaction } from 'kysely';
 import pg from 'pg';
 import { env } from '../config/env.js';
 import type { ControlPlaneDB, ShardDB } from './schema.js';
+
+export type ShardTransaction = Transaction<ShardDB>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

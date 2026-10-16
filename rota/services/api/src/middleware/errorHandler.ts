@@ -95,16 +95,26 @@ export function errorHandler(
   }
 
   // Domain errors (RotaError, or any error with code and status/statusCode)
-  const anyErr = error as any;
-  if (anyErr?.code && (typeof anyErr.status === 'number' || typeof anyErr.statusCode === 'number')) {
-    const status = anyErr.status ?? anyErr.statusCode;
-    if (anyErr.retryAfter !== undefined) {
-      void reply.header('Retry-After', String(anyErr.retryAfter));
+  interface DomainErrorLike {
+    code?: unknown;
+    status?: unknown;
+    statusCode?: unknown;
+    retryAfter?: unknown;
+    message?: unknown;
+  }
+  const errLike = error as DomainErrorLike;
+  if (
+    typeof errLike?.code === 'string' &&
+    (typeof errLike.status === 'number' || typeof errLike.statusCode === 'number')
+  ) {
+    const status = (typeof errLike.status === 'number' ? errLike.status : errLike.statusCode) as number;
+    if (typeof errLike.retryAfter === 'number' || typeof errLike.retryAfter === 'string') {
+      void reply.header('Retry-After', String(errLike.retryAfter));
     }
     void reply.status(status).send({
       error: {
-        code: anyErr.code,
-        message: anyErr.message || 'Operation failed',
+        code: errLike.code,
+        message: typeof errLike.message === 'string' ? errLike.message : 'Operation failed',
         requestId,
       },
     });
