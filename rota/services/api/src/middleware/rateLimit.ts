@@ -115,7 +115,7 @@ export const rateLimits = {
 
   feedUser: createRateLimiter({
     scope: 'feed:user',
-    maxRequests: 60,
+    maxRequests: process.env['LOAD_TEST'] === '1' ? 10_000 : 60,
     windowSeconds: 60,
     identifierExtractor: (req) => req.user?.id || req.ip,
   }),

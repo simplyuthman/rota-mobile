@@ -233,7 +233,6 @@ const createStyles = (t: ThemeContextValue) =>
       color: t.colors.onSurfaceVariant,
       textAlign: 'center',
       maxWidth: 320,
-      lineHeight: 22,
     },
     refreshButton: {
       flexDirection: 'row',

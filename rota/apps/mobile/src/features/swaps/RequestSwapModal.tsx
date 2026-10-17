@@ -328,7 +328,7 @@ const createStyles = (t: ThemeContextValue) =>
     shiftCard: {
       backgroundColor: t.colors.surfaceContainer,
       padding: t.spacing.medium,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     shiftTitle: {
       fontWeight: '700',
@@ -363,7 +363,7 @@ const createStyles = (t: ThemeContextValue) =>
       backgroundColor: t.colors.primaryContainer,
     },
     colleagueInfo: {
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     colleagueName: {
       fontWeight: '600',
@@ -388,7 +388,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     infoText: {
       flex: 1,
-      lineHeight: 18,
+      ...t.textStyles.bodySmall,
     },
     footer: {
       flexDirection: 'row',

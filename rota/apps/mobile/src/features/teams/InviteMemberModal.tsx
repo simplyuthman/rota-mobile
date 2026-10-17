@@ -323,7 +323,7 @@ const createStyles = (t: ThemeContextValue) =>
       backgroundColor: t.colors.surfaceContainer,
       borderWidth: 1,
       borderColor: t.colors.surfaceVariant,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     roleCardSelected: {
       borderColor: t.colors.primary,
@@ -370,7 +370,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     expiryNote: {
       textAlign: 'center',
-      fontSize: 12,
+      ...t.textStyles.bodySmall,
     },
     doneButton: {
       width: '100%',

@@ -4,11 +4,19 @@
 
 ---
 
-## 1. Quick Links
+## 1. Quick Links & Graduation Artifacts
 - **Platform**: Verified on Android development build via EAS Build.
 - **Backend API**: Fastify + PostgreSQL (Control Plane + 2 Data Shards) + 2 Redis instances (Cache + BullMQ).
 - **Mobile Client**: React Native + Expo + Expo Router + TanStack Query + Zustand.
 - **Design System**: DM Sans typography, 4px spacing scale, semantic color roles with dynamic Light/Dark/System theming.
+- **Graduation Evidence Pack**:
+  - [Architecture & Pool Sizing](docs/ARCHITECTURE.md)
+  - [State & Storage Classification](docs/STATE.md)
+  - [Security 8-Threat Model & EXPO_PUBLIC Audit](docs/SECURITY.md)
+  - [Database Sharding & Routing](docs/SHARDING.md)
+  - [Engineering Learning Log](docs/LEARNING-LOG.md)
+  - [k6 Load Test Benchmark Report](load-tests/REPORT.md)
+  - [Architecture Decision Records](docs/decisions/)
 
 ---
 
@@ -101,9 +109,18 @@ pnpm tokens
 
 ---
 
-## 5. App Store Billing Notice (Production Architecture)
+## 5. App Store Billing Notice & Production Architecture
 
 In a commercial production deployment distributed through the **Apple App Store** and **Google Play Store**, digital subscriptions sold directly to end users inside mobile apps fall under app store in-app purchase policies:
-- **Apple In-App Purchase (IAP)** and **Google Play Billing** require a 15–30% fee for digital goods and services consumed within the app.
-- Multi-platform B2B / SaaS tools often qualify for reader or multiplatform exceptions when accounts and seats are primarily provisioned and billed via a web management portal, or they integrate native StoreKit / Google Play Billing adapters.
-- **For this graduation build (Mobile Task A)**: Billing is handled via **Flutterwave in test mode** behind a provider-neutral payment adapter (`adapters/payments/flutterwave/`), simulating webhook-driven recurring billing, seat proration, and append-only ledger accounting without submitting production binary builds to store review.
+
+### 5.1 Regulatory & Policy Constraints
+- **Apple App Store Guideline 3.1.1 (In-App Purchase)**: If an app enables users to unlock features or functionality within the app (such as scheduling extra employee seats or upgrading a team subscription), developers must utilize Apple In-App Purchase (StoreKit 2). Apple levies a commission of 15% (for members of the Small Business Program) or 30% on digital subscription transactions.
+- **Google Play Billing Policy (Section 3)**: Similarly requires all developers selling digital content or subscription access within Play-distributed apps to integrate the Google Play Billing system.
+- **Enterprise / Multiplatform Services Exception (Apple Guideline 3.1.3(c))**: Apps that operate across multiple platforms (such as enterprise B2B SaaS tools like Slack, Asana, or Deputy) may allow users to access content, subscriptions, or features acquired outside the app (e.g. via a web management portal), provided those subscriptions are also available for purchase via web invoicing and there is no direct in-app call-to-action steering users to an external website.
+
+### 5.2 Graduation Build Architecture (Mobile Task A)
+For this graduation build:
+1. **Flutterwave Test Mode**: Subscriptions and seat purchases are processed through **Flutterwave test mode** isolated behind a provider-neutral payment adapter (`adapters/payments/flutterwave/`).
+2. **Server-Side Financial Integrity**: All seat pricing (cents), proration calculations (Rule M-03), billing quotes (Rule M-07), signature verification (Rules M-08, M-09, M-10), and append-only ledger accounting (Rule M-12) execute on the backend server.
+3. **Pluggable Adapter Model**: The payment architecture cleanly decouples business rules from payment gateways. In a production environment requiring App Store compliance, a native StoreKit 2 / Google Play Billing adapter can replace or complement the Flutterwave adapter without altering core ledger or subscription scheduling services.
+

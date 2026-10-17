@@ -114,7 +114,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     textColumn: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     title: {
       ...t.textStyles.labelMedium,
@@ -125,10 +125,8 @@ const createStyles = (t: ThemeContextValue) =>
       color: t.colors.onErrorContainer,
     },
     subtitle: {
-      ...t.textStyles.bodySmall,
+      ...t.textStyles.labelSmall,
       color: t.colors.onSecondaryContainer,
-      fontSize: 11,
-      lineHeight: 14,
     },
     subtitleExpired: {
       color: t.colors.onErrorContainer,
@@ -139,9 +137,9 @@ const createStyles = (t: ThemeContextValue) =>
       gap: t.spacing.extraSmall,
     },
     iconButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: t.touchTarget - t.spacing.base,
+      height: t.touchTarget - t.spacing.base,
+      borderRadius: t.radius.full,
       backgroundColor: t.colors.surface,
       alignItems: 'center',
       justifyContent: 'center',
@@ -149,16 +147,15 @@ const createStyles = (t: ThemeContextValue) =>
     resumeButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: t.spacing.extraSmall,
       backgroundColor: t.colors.primary,
       paddingHorizontal: t.spacing.small,
-      paddingVertical: 6,
+      paddingVertical: t.spacing.extraSmall,
       borderRadius: t.radius.control,
     },
     resumeButtonText: {
       ...t.textStyles.labelSmall,
       color: t.colors.onPrimary,
       fontWeight: '600',
-      fontSize: 11,
     },
   });

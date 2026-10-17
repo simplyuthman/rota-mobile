@@ -50,6 +50,7 @@ import {
   Radio,
   Cpu,
   Activity,
+  Sparkles,
 } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { Text } from '../../src/components/Text';
@@ -70,6 +71,7 @@ import { JoinTeamModal } from '../../src/features/teams/JoinTeamModal';
 import { BillingModal } from '../../src/features/billing/BillingModal';
 import { PushNotificationSimulatorModal } from '../../src/features/notifications/PushNotificationSimulatorModal';
 import { SystemDiagnosticsModal } from '../../src/features/system/SystemDiagnosticsModal';
+import { ProductionReadinessModal } from '../../src/features/system/ProductionReadinessModal';
 import { useSubscription } from '../../src/features/billing/useBilling';
 import { getErrorMessage } from '../../src/utils/error';
 import type { TeamMembershipDto, Role } from '@rota/contracts';
@@ -116,6 +118,7 @@ export default function SettingsScreen() {
   const [billingModalOpen, setBillingModalOpen] = useState(false);
   const [pushModalOpen, setPushModalOpen] = useState(false);
   const [diagnosticsModalOpen, setDiagnosticsModalOpen] = useState(false);
+  const [productionModalOpen, setProductionModalOpen] = useState(false);
 
   // When a push notification of type 'billing' arrives, auto-open billing modal (Rule P-05)
   useEffect(() => {
@@ -817,6 +820,32 @@ export default function SettingsScreen() {
             style={{ width: '100%', marginTop: theme.spacing.small }}
           />
         </Card>
+
+        {/* Tier 9: Production Readiness & Accessibility Card */}
+        <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextCol}>
+              <View style={styles.labelWithIcon}>
+                <Sparkles size={18} color={theme.colors.primary} />
+                <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
+                  Production Readiness & Polish
+                </Text>
+              </View>
+              <Text role="bodySmall" color="onSurfaceVariant">
+                WCAG AAA contrast, TalkBack gate, 8-threat security audit & store billing
+              </Text>
+            </View>
+            <Badge label="PHASE 9" variant="primary" size="small" />
+          </View>
+
+          <PrimaryButton
+            label="Open Production Readiness & Accessibility"
+            variant="secondary"
+            leadingIcon={<ShieldCheck size={16} color={theme.colors.primary} />}
+            onPress={() => setProductionModalOpen(true)}
+            style={{ width: '100%', marginTop: theme.spacing.small }}
+          />
+        </Card>
       </View>
 
       {/* 5. Appearance Theme Switcher */}
@@ -983,6 +1012,10 @@ export default function SettingsScreen() {
         teamId={teamId}
         teamName={activeTeam?.name ?? 'Team'}
       />
+      <ProductionReadinessModal
+        visible={productionModalOpen}
+        onClose={() => setProductionModalOpen(false)}
+      />
     </ScrollView>
   );
 }
@@ -1028,7 +1061,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     noTeamTextContainer: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     noTeamButtonsRow: {
       flexDirection: 'row',
@@ -1079,7 +1112,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     profileInfo: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     profileName: {
       fontWeight: '700',
@@ -1125,7 +1158,7 @@ const createStyles = (t: ThemeContextValue) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: t.spacing.extraSmall,
-      marginTop: 2,
+      marginTop: t.spacing.extraSmall / 2,
     },
     seatsUsageRow: {
       flexDirection: 'row',
@@ -1164,7 +1197,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     memberInfo: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     memberName: {
       fontWeight: '600',
@@ -1185,7 +1218,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     billingInfoLeft: {
       flex: 1,
-      gap: 4,
+      gap: t.spacing.extraSmall,
     },
     billingPlanTitle: {
       fontWeight: '700',
@@ -1211,7 +1244,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     settingTextCol: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     labelWithIcon: {
       flexDirection: 'row',
@@ -1248,7 +1281,7 @@ const createStyles = (t: ThemeContextValue) =>
       fontWeight: '600',
     },
     quietHoursHint: {
-      marginTop: 2,
+      marginTop: t.spacing.extraSmall / 2,
       fontStyle: 'italic',
     },
     themeCard: {
@@ -1287,6 +1320,6 @@ const createStyles = (t: ThemeContextValue) =>
       width: '100%',
     },
     versionText: {
-      fontSize: 12,
+      ...t.textStyles.bodySmall,
     },
   });

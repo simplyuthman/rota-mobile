@@ -33,10 +33,15 @@ export async function getTeamCacheVersion(teamId: string): Promise<string> {
 export async function bumpTeamCacheVersion(teamId: string): Promise<number> {
   try {
     const next = await redisCache.incr(`team:${teamId}:version`);
-    // Sync legacy feed key
+    if (next === 1) {
+      // Default getTeamCacheVersion returns '1' when uninitialized, so first bump advances to 2
+      const advanced = await redisCache.incr(`team:${teamId}:version`);
+      await redisCache.set(`team:${teamId}:feed:version`, advanced.toString()).catch(() => {});
+      return advanced;
+    }
     await redisCache.set(`team:${teamId}:feed:version`, next.toString()).catch(() => {});
     return next;
   } catch {
-    return 1;
+    return 2;
   }
 }

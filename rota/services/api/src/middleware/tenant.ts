@@ -10,7 +10,9 @@
  */
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { getShardDb } from '../db/index.js';
+import { getShardDb, getShardReadDbForUser } from '../db/index.js';
+import { redisCache } from '../db/redis.js';
+import { getTeamCacheVersion } from '../db/cacheVersion.js';
 import type { Role } from '@rota/contracts';
 
 export interface ActiveMembership {
@@ -61,7 +63,38 @@ export async function requireTeamMember(
     });
   }
 
-  const shardDb = getShardDb(teamId);
+  // Rule D-03: Fast-path check from roster cache if present
+  try {
+    const v = await getTeamCacheVersion(teamId);
+    const cacheKey = `team:${teamId}:roster:v${v}`;
+    const cached = await redisCache.get(cacheKey);
+    if (cached) {
+      const roster = JSON.parse(cached) as Array<{
+        id: string;
+        teamId: string;
+        userId: string;
+        role: Role;
+        status: string;
+      }>;
+      const cachedMember = roster.find((m) => m.userId === user.id && m.status === 'active');
+      if (cachedMember) {
+        request.membership = {
+          id: cachedMember.id,
+          teamId: cachedMember.teamId,
+          userId: cachedMember.userId,
+          role: cachedMember.role,
+          status: 'active',
+        };
+        request.teamRole = cachedMember.role;
+        return;
+      }
+    }
+  } catch {
+    // Fallback to database on cache error
+  }
+
+  // Fallback to database: route reads to read replica or primary based on read-your-own-writes (TRD §2)
+  const shardDb = await getShardReadDbForUser(teamId, user.id);
 
   // Rule A-02: Look up authenticated membership strictly on the resolved shard
   const membership = await shardDb

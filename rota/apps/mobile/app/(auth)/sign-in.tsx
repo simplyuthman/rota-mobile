@@ -327,7 +327,6 @@ const createStyles = (t: ThemeContextValue) =>
       ...t.textStyles.bodyMedium,
       color: t.colors.onSurfaceVariant,
       textAlign: 'center',
-      lineHeight: 22,
     },
     boldEmail: {
       color: t.colors.onSurface,

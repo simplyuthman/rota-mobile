@@ -39,7 +39,7 @@ export class ActivityService {
   /**
    * Filters raw events in-memory per viewer role and membership ID (Rule D-03).
    */
-  private filterForViewer(
+  public filterForViewer(
     rows: ActivityEventRow[],
     role: 'owner' | 'manager' | 'staff',
     membershipId: string
@@ -80,19 +80,14 @@ export class ActivityService {
     teamId: string,
     viewerRole: 'owner' | 'manager' | 'staff',
     viewerMembershipId: string,
-    options: { cursor?: string | undefined; limit?: number | undefined }
+    options: { cursor?: string | undefined; limit?: number | undefined; bypassCache?: boolean | undefined }
   ): Promise<ActivityFeedResponse> {
     const limit = options.limit ?? 20;
     const isFirstPage = !options.cursor;
 
     // Rule D-03: First-page caching check (newest 50 raw events per team, 30s)
-    if (isFirstPage) {
+    if (isFirstPage && !options.bypassCache) {
       try {
-        const backfilled = await activityRepo.backfillPublishedShifts(teamId);
-        if (backfilled > 0) {
-          await this.bumpCacheVersion(teamId);
-        }
-
         const v = await this.getCacheVersion(teamId);
         const cacheKey = `team:${teamId}:feed:first:v${v}`;
         let rawEvents: ActivityEventRow[] | null = null;
@@ -101,6 +96,10 @@ export class ActivityService {
         if (cached) {
           rawEvents = JSON.parse(cached) as ActivityEventRow[];
         } else {
+          const backfilled = await activityRepo.backfillPublishedShifts(teamId);
+          if (backfilled > 0) {
+            await this.bumpCacheVersion(teamId);
+          }
           rawEvents = await activityRepo.getRawFirstPage(teamId, 50);
           await redisCache.set(cacheKey, JSON.stringify(rawEvents), 'EX', CACHE_TTL_SECONDS);
         }

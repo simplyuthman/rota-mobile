@@ -784,7 +784,7 @@ const createStyles = (t: ThemeContextValue) => {
     ledgerAmount: {
       ...t.textStyles.titleMedium,
       fontWeight: '700',
-      marginBottom: 2,
+      marginBottom: t.spacing.extraSmall / 2,
     },
     emptyText: {
       ...t.textStyles.bodyMedium,

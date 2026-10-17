@@ -245,7 +245,7 @@ const createStyles = (t: ThemeContextValue) =>
       color: t.colors.primary,
       backgroundColor: t.colors.surface,
       paddingHorizontal: t.spacing.small,
-      paddingVertical: 2,
+      paddingVertical: t.spacing.extraSmall / 2,
       borderRadius: t.radius.control,
       fontWeight: '700',
     },

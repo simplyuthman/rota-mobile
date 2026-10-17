@@ -449,7 +449,7 @@ export default function ScheduleScreen() {
           <View style={styles.notificationBanner}>
             <View style={styles.notificationBannerContent}>
               <Bell size={18} color={theme.colors.primary} />
-              <View style={{ flex: 1, gap: 2 }}>
+              <View style={{ flex: 1, gap: theme.spacing.extraSmall / 2 }}>
                 <Text role="labelMedium" color="primary">
                   Highlighting {highlightedShiftId ? 'Shift' : 'Swap'} from Notification
                 </Text>
@@ -878,7 +878,7 @@ const createStyles = (t: ThemeContextValue) =>
       backgroundColor: t.colors.surface,
     },
     teamInfo: {
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     teamSelectorTrigger: {
       flexDirection: 'row',

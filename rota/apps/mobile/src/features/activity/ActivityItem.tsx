@@ -181,7 +181,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     contentContainer: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     headerRow: {
       flexDirection: 'row',

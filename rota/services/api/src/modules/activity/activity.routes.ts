@@ -39,11 +39,12 @@ export const activityRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
+      const bypassCache = request.headers['x-bypass-cache'] === 'true';
       const response = await activityService.getFeed(
         teamId,
         membership.role,
         membership.id,
-        parsedQuery.data
+        { ...parsedQuery.data, bypassCache }
       );
 
       return reply.send(response);

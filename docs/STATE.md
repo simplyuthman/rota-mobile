@@ -54,5 +54,55 @@
 - **Digest Collapse (Rule L-02)**: Delayed items sharing a `collapse_key` (`digest:${userId}:${category}`) collapse into a single push notification upon release, marking older superseded pending jobs `cancelled` with `last_error_code='collapsed'`.
 - **Pre-Send Re-Check (Rule L-02)**: Before dispatching push notifications, the worker re-reads the underlying database entity. If a shift was cancelled or a swap expired while delayed, the job is marked `cancelled` with `stale_entity_cancelled` and no push is transmitted.
 - **Tap-To-Open Routing (Rule P-05)**: Handled across cold start, background, and foreground states. Automatically switches the client's active team context if `payload.teamId !== selectedTeamId` before deep linking to the target shift, swap, activity feed, or billing modal.
+## 7. Pooling, Caching, Sharding, and Replication Routing (Tier 8)
+- **PostgreSQL Pool Sizing & Timeouts**:
+  - Control plane: `max: 10`
+  - Shards 0 & 1 primary: `max: 20`
+  - Shards 0 & 1 read replica: `max: 20`
+  - Connection timeout: 5,000 ms; statement timeout: 10,000 ms; idle timeout: 30,000 ms.
+- **Read-Your-Own-Writes Guarantee (TRD §2, AGENTS.md §2.2)**:
+  - 5 seconds after a user write (`POST`, `PUT`, `PATCH`, `DELETE` returning 2xx), that user's read requests bypass read replicas and route directly to the primary database (`getShardDb`).
+  - After the 5-second window elapses, read requests automatically return to the read replica (`getShardReadDb`).
+  - Response header `x-read-source: primary | replica` is returned on all reads to expose data origin.
+- **Multi-Tier Redis Caching Strategy (Rules D-03, D-04)**:
+  - Published calendar cache: `team:{id}:cal:pub:{start}:{end}:v{n}` with 300s TTL (published shifts only, notes stripped, drafts never cached).
+  - Tenant roster cache: `team:{id}:roster:v{n}` with 300s TTL (accelerates tenant membership lookup without touching PostgreSQL on cache hits).
+  - Feed first-page cache: `team:{id}:feed:first:v{n}` with 30s TTL (newest 50 raw events per team, in-memory viewer filtered per role, fallback to DB if filtered rows < limit).
+  - Cache versioning: atomic version bump via `bumpTeamCacheVersion(teamId)` increments `team:{id}:version`, simultaneously invalidating calendar, roster, and feed first-page caches.
+- **Deterministic Two-Shard Routing**:
+  - Teams are deterministically partitioned across `rota_shard_0` and `rota_shard_1` using CRC-32 mod 2, recorded in the control plane `team_directory(team_id, shard_id)`.
+  - Zero cross-database foreign keys (enforced in database schema and test T8-04).
+- **Rule S-08 Rate Limits**:
+  - Sliding-window Redis counters per account and IP returning HTTP 429 and `Retry-After`:
+    - Login: 5/min per account, 30/min per IP
+    - Password reset: 3/hour per email, 10/hour per IP
+    - Invites: 20/hour per team
+    - Checkout: 5/hour per team
+    - Feed: 60/min per user
 
+## 8. Hardening, Security, Accessibility & Production Readiness State (Phase 9)
+- **Design Tokens & Accessibility Gate (P0 Gate)**:
+  - Zero raw colors (`#hex`, `rgba`, `hsla`), zero named colors (`white`, `black`, `transparent`), zero primitives outside `src/theme/`, zero raw typography (`fontSize`, `lineHeight`), zero raw spacing numbers, and zero disabled font scaling (`allowFontScaling={false}`).
+  - WCAG AAA/AA relative luminance contrast: all text foreground/background pairs exceed $\ge 4.5:1$ across both Light and Dark themes (e.g. `onSurface/surface` 16.99:1 in light, 13.96:1 in dark).
+  - Minimum touch targets: interactive elements guarantee at least $44 \times 44$ pt (`theme.touchTarget = 48 pt`).
+  - Screen reader & TalkBack support: accessibility roles and labels across all buttons, inputs, switches, and modal dialogs.
+- **Sentry & Logger Scrubbing (Rules O-01, O-03)**:
+  - Sentry `beforeSend` hook and Pino logger redaction sanitize sensitive data before logging or transmission:
+    - Authorization headers, bearer tokens, passwords, push tokens.
+    - Credit card numbers, CVVs, provider payment secrets.
+    - Shift notes and manager comments (Rules O-01, O-03).
+  - Sentry DSN is safely exposed in client (`EXPO_PUBLIC_SENTRY_DSN`), while Sentry Auth Token remains strictly on the server or CI/CD secrets.
+- **Security Threat Model Invariants (8 Core Threats)**:
+  - 1. **Cross-Team Data Leakage**: Strictly scoped by `team_id` in SQL and directory routing; composite foreign keys `(team_id, id)`.
+  - 2. **Privilege Escalation**: Centralized server-side authorization; staff hidden from draft shifts, shift notes, and billing records; Owner role is immutable (`409 OWNER_IMMUTABLE`).
+  - 3. **Stolen Tokens**: 15-minute access tokens with `sid` claim; Redis revocation blacklist (`auth:revoked:${sid}`) checked on every authenticated request; refresh token rotation.
+  - 4. **Reset & Magic Link Replay**: Tokens stored SHA-256 hashed; single-use consumption; timing-safe comparison; uniform responses to prevent account enumeration.
+  - 5. **Webhook Spoofing & Duplicates**: HMAC signature verification before parsing payload; deduplication via control plane `payment_webhook_events`.
+  - 6. **Secrets in Bundles & Logs**: Zero secrets in client bundle or Git repository; `EXPO_PUBLIC_` audit; Pino and Sentry redaction.
+  - 7. **Brute Force & Abuse**: Multi-tier sliding-window Redis rate limits per account and per IP.
+  - 8. **Shared-Phone Cache & Push Leaks**: Single-query 30-day offline cache with notes stripped; cache wiped on logout/user change; push payloads restricted to `{type, teamId, entityId}`; quiet hours enforced on server.
+- **App Store In-App Purchase Architecture & B2B SaaS Modeling**:
+  - Digital subscriptions sold directly inside mobile apps are subject to Apple In-App Purchase (StoreKit 2) and Google Play Billing (15–30% platform commission).
+  - Multi-platform B2B / SaaS tools operating on team-seat pricing commonly utilize web-based administrative management or native store billing adapters.
+  - Test mode Flutterwave payment adapter models the complete asynchronous subscription lifecycle (tokenized card charges, webhooks, proration, append-only ledger) without violating store distribution terms for unreviewed binaries.
 

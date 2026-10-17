@@ -116,6 +116,12 @@ export function PushNotificationSimulatorModal({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
+        <Pressable
+          style={styles.backdrop}
+          onPress={onClose}
+          accessibilityLabel="Dismiss modal backdrop"
+          accessibilityRole="button"
+        />
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
@@ -287,8 +293,16 @@ const createStyles = (t: ThemeContextValue) =>
   StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
       justifyContent: 'flex-end',
+    },
+    backdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: t.colors.inverseSurface,
+      opacity: 0.5,
     },
     modalContainer: {
       backgroundColor: t.colors.surface,
@@ -354,12 +368,11 @@ const createStyles = (t: ThemeContextValue) =>
       fontWeight: '600',
     },
     tokenString: {
+      ...t.textStyles.bodySmall,
       fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-      fontSize: 12,
     },
     tokenSubtext: {
-      fontSize: 11,
-      lineHeight: 14,
+      ...t.textStyles.labelSmall,
     },
     sectionHeader: {
       fontWeight: '700',
@@ -392,7 +405,7 @@ const createStyles = (t: ThemeContextValue) =>
     },
     routeTextCol: {
       flex: 1,
-      gap: 2,
+      gap: t.spacing.extraSmall / 2,
     },
     liveTestCard: {
       padding: t.spacing.base,

@@ -9,6 +9,6 @@
   "references": [
     { "path": "../../packages/contracts" }
   ],
-  "include": ["src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "scripts"]
 }

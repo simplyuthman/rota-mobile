@@ -390,7 +390,7 @@ export function SystemDiagnosticsModal({
                 ) : (
                   <>
                     <RefreshCw size={14} color={theme.colors.primary} />
-                    <Text role="labelSmall" color="primary" style={{ marginLeft: 4 }}>
+                    <Text role="labelSmall" color="primary" style={{ marginLeft: theme.spacing.extraSmall }}>
                       Bump Version
                     </Text>
                   </>
@@ -576,7 +576,7 @@ function createStyles(theme: ThemeContextValue) {
     },
     cardDescription: {
       marginBottom: theme.spacing.medium,
-      lineHeight: 18,
+      ...theme.textStyles.bodySmall,
     },
     metricRow: {
       flexDirection: 'row',

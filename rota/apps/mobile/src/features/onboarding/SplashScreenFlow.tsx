@@ -401,11 +401,10 @@ const createStyles = (t: ThemeContextValue) => {
       fontWeight: '700',
     },
     dayDot: {
-      width: 4,
-      height: 4,
+      width: t.spacing.extraSmall,
+      height: t.spacing.extraSmall,
       borderRadius: t.radius.full,
-      backgroundColor: 'transparent',
-      marginTop: 4,
+      marginTop: t.spacing.extraSmall,
     },
     dayDotActive: {
       backgroundColor: t.colors.primary,
@@ -431,7 +430,7 @@ const createStyles = (t: ThemeContextValue) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginTop: 2,
+      marginTop: t.spacing.extraSmall / 2,
     },
     shiftTimePrimary: {
       ...t.textStyles.bodySmall,
@@ -441,10 +440,10 @@ const createStyles = (t: ThemeContextValue) => {
     shiftUserPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      backgroundColor: 'rgba(0, 78, 212, 0.08)',
+      gap: t.spacing.extraSmall,
+      backgroundColor: t.colors.primaryContainer,
       paddingHorizontal: t.spacing.small,
-      paddingVertical: 2,
+      paddingVertical: t.spacing.extraSmall / 2,
       borderRadius: t.radius.full,
     },
     shiftUserNamePrimary: {
@@ -469,10 +468,10 @@ const createStyles = (t: ThemeContextValue) => {
     shiftUserPillSecondary: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: t.spacing.extraSmall,
       backgroundColor: t.colors.surfaceContainerHigh,
       paddingHorizontal: t.spacing.small,
-      paddingVertical: 2,
+      paddingVertical: t.spacing.extraSmall / 2,
       borderRadius: t.radius.full,
     },
     shiftUserNameSecondary: {
@@ -492,7 +491,7 @@ const createStyles = (t: ThemeContextValue) => {
       color: t.colors.secondary,
       fontWeight: '700',
       letterSpacing: 0.5,
-      marginBottom: 2,
+      marginBottom: t.spacing.extraSmall / 2,
     },
     swapCardTitle: {
       ...t.textStyles.titleSmall,
@@ -502,8 +501,8 @@ const createStyles = (t: ThemeContextValue) => {
     swapUserRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      marginTop: 2,
+      gap: t.spacing.extraSmall,
+      marginTop: t.spacing.extraSmall / 2,
     },
     swapCardSub: {
       ...t.textStyles.bodySmall,
@@ -556,8 +555,8 @@ const createStyles = (t: ThemeContextValue) => {
     notifHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      marginBottom: 4,
+      gap: t.spacing.small - t.spacing.extraSmall / 2,
+      marginBottom: t.spacing.extraSmall,
     },
     notifAppName: {
       ...t.textStyles.labelSmall,
@@ -572,7 +571,7 @@ const createStyles = (t: ThemeContextValue) => {
     notifBody: {
       ...t.textStyles.bodySmall,
       color: t.colors.onSurfaceVariant,
-      marginTop: 2,
+      marginTop: t.spacing.extraSmall / 2,
     },
     quietHoursCard: {
       flexDirection: 'row',
@@ -639,7 +638,6 @@ const createStyles = (t: ThemeContextValue) => {
     descriptionText: {
       ...t.textStyles.bodyMedium,
       color: t.colors.onSurfaceVariant,
-      lineHeight: 22,
     },
 
     // --- Bottom Navigation Section ---
@@ -657,7 +655,7 @@ const createStyles = (t: ThemeContextValue) => {
     dot: {
       height: 6,
       borderRadius: t.radius.full,
-      marginHorizontal: 4,
+      marginHorizontal: t.spacing.extraSmall,
     },
     dotActive: {
       width: 24,
