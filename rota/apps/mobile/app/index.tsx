@@ -1,20 +1,18 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { SplashScreenFlow } from '../src/features/onboarding/SplashScreenFlow';
-import { getAccessToken } from '../src/storage/secureStore';
+import { SplashScreen } from '../src/features/onboarding/SplashScreen';
 
-export default function WelcomeSplashScreen() {
+export default function AppEntrySplash() {
   const router = useRouter();
 
-  const handleFinish = async () => {
-    const token = await getAccessToken();
-    if (token) {
+  const handleFinish = (authenticated: boolean) => {
+    if (authenticated) {
       router.replace('/(tabs)' as never);
     } else {
-      router.replace('/(auth)/sign-in' as never);
+      router.replace('/(auth)/welcome' as never);
     }
   };
 
-  return <SplashScreenFlow onFinish={handleFinish} />;
+  return <SplashScreen onFinish={handleFinish} />;
 }
 

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react-native';
+import { AlertCircle, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { InputField } from '../../src/components/InputField';
 import { PrimaryButton } from '../../src/components/PrimaryButton';
@@ -55,6 +55,20 @@ export default function EnterInviteCodeScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Top Back Navigation */}
+        <View style={styles.topNavRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to welcome"
+            style={styles.backButton}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace('/(auth)/welcome' as never)
+            }
+          >
+            <ArrowLeft size={20} color={theme.colors.onSurface} />
+          </Pressable>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.brandTitle}>ROTA</Text>
           <Text style={styles.heading}>Enter Invite Code</Text>
@@ -160,6 +174,19 @@ const createStyles = (t: ThemeContextValue) =>
       paddingHorizontal: t.spacing.large,
       paddingVertical: t.spacing.extraLarge,
       justifyContent: 'center',
+    },
+    topNavRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: t.spacing.medium,
+    },
+    backButton: {
+      width: t.touchTarget,
+      height: t.touchTarget,
+      borderRadius: t.radius.full,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: t.colors.surfaceVariant,
     },
     header: {
       marginBottom: t.spacing.large,

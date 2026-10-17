@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Lock, Sparkles, AlertCircle, ArrowRight } from 'lucide-react-native';
+import { Lock, Sparkles, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../src/theme';
 import { InputField } from '../../src/components/InputField';
 import { PrimaryButton } from '../../src/components/PrimaryButton';
@@ -69,6 +69,20 @@ export default function SignInScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Top Back Navigation */}
+        <View style={styles.topNavRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to welcome"
+            style={styles.backButton}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace('/(auth)/welcome' as never)
+            }
+          >
+            <ArrowLeft size={20} color={theme.colors.onSurface} />
+          </Pressable>
+        </View>
+
         {/* Header Branding */}
         <View style={styles.header}>
           <Text style={styles.brandTitle}>ROTA</Text>
@@ -237,6 +251,19 @@ const createStyles = (t: ThemeContextValue) =>
       paddingHorizontal: t.spacing.large,
       paddingVertical: t.spacing.extraLarge,
       justifyContent: 'center',
+    },
+    topNavRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: t.spacing.medium,
+    },
+    backButton: {
+      width: t.touchTarget,
+      height: t.touchTarget,
+      borderRadius: t.radius.full,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: t.colors.surfaceVariant,
     },
     header: {
       marginBottom: t.spacing.large,
