@@ -33,7 +33,13 @@
       "expo-router",
       "expo-secure-store",
       "expo-notifications",
-      "@sentry/react-native",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "rota",
+          "project": "rota-mobile"
+        }
+      ],
       "expo-font"
     ],
     "scheme": "rota",
