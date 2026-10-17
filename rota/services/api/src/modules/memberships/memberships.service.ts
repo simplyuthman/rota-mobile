@@ -8,6 +8,9 @@
  */
 
 import { membershipsRepo } from './memberships.repo.js';
+import { controlPlane } from '../../db/index.js';
+import { redisCache } from '../../db/redis.js';
+import { getTeamCacheVersion, bumpTeamCacheVersion } from '../../db/cacheVersion.js';
 import type { Role, TeamMembershipDto } from '@rota/contracts';
 
 export class MembershipError extends Error {
@@ -22,17 +25,57 @@ export class MembershipError extends Error {
 }
 
 export const membershipsService = {
+  /**
+   * Lists active team memberships with user display names and emails.
+   * Cached under team:{teamId}:roster:v{n} with a 300s TTL (Rule D-03).
+   */
   async listMembers(teamId: string): Promise<TeamMembershipDto[]> {
+    const v = await getTeamCacheVersion(teamId);
+    const cacheKey = `team:${teamId}:roster:v${v}`;
+
+    try {
+      const cached = await redisCache.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached) as TeamMembershipDto[];
+      }
+    } catch {
+      // Fallback to database on cache error
+    }
+
     const rows = await membershipsRepo.listTeamMemberships(teamId);
-    return rows.map((m) => ({
-      id: m.id,
-      teamId: m.team_id,
-      userId: m.user_id,
-      role: m.role as Role,
-      status: m.status as 'active',
-      activatedAt: m.activated_at ? m.activated_at.toISOString() : null,
-      createdAt: m.created_at.toISOString(),
-    }));
+    const userIds = rows.map((m) => m.user_id);
+    const users =
+      userIds.length > 0
+        ? await controlPlane
+            .selectFrom('users')
+            .select(['id', 'display_name', 'email'])
+            .where('id', 'in', userIds)
+            .execute()
+        : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const result = rows.map((m) => {
+      const u = userMap.get(m.user_id);
+      return {
+        id: m.id,
+        teamId: m.team_id,
+        userId: m.user_id,
+        role: m.role as Role,
+        status: m.status as 'active',
+        displayName: u?.display_name ?? null,
+        email: u?.email ?? null,
+        activatedAt: m.activated_at ? m.activated_at.toISOString() : null,
+        createdAt: m.created_at.toISOString(),
+      };
+    });
+
+    try {
+      await redisCache.set(cacheKey, JSON.stringify(result), 'EX', 300);
+    } catch {
+      // Non-fatal if cache write fails
+    }
+
+    return result;
   },
 
   async updateMemberRoleOrStatus(
@@ -78,6 +121,9 @@ export const membershipsService = {
     }
 
     const updated = await membershipsRepo.updateMembership(teamId, memberId, data);
+
+    // Rule D-04: Invalidate roster cache on membership mutation
+    await bumpTeamCacheVersion(teamId);
 
     return {
       id: updated.id,

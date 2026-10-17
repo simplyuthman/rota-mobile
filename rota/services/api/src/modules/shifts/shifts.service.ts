@@ -15,6 +15,9 @@
  */
 
 import { shiftsRepo, OverlapError } from './shifts.repo.js';
+import { activityService } from '../activity/activity.service.js';
+import { redisCache } from '../../db/redis.js';
+import { getTeamCacheVersion, bumpTeamCacheVersion } from '../../db/cacheVersion.js';
 import type { ShiftDto, ShiftPublicDto, CreateShiftRequest, UpdateShiftRequest } from '@rota/contracts';
 
 export class ShiftError extends Error {
@@ -35,7 +38,10 @@ export class ShiftError extends Error {
   }
 }
 
-function toShiftDto(row: Awaited<ReturnType<typeof shiftsRepo.findShiftById>> & object): ShiftDto {
+function toShiftDto(
+  row: Awaited<ReturnType<typeof shiftsRepo.findShiftById>> & object,
+  assignedMembershipId?: string | null
+): ShiftDto {
   return {
     id: row.id,
     teamId: row.team_id,
@@ -50,11 +56,15 @@ function toShiftDto(row: Awaited<ReturnType<typeof shiftsRepo.findShiftById>> & 
     cancelledAt: row.cancelled_at?.toISOString() ?? null,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
+    assignedMembershipId: assignedMembershipId ?? null,
   };
 }
 
-function toPublicShiftDto(row: Awaited<ReturnType<typeof shiftsRepo.findShiftById>> & object): ShiftPublicDto {
-  const dto = toShiftDto(row);
+function toPublicShiftDto(
+  row: Awaited<ReturnType<typeof shiftsRepo.findShiftById>> & object,
+  assignedMembershipId?: string | null
+): ShiftPublicDto {
+  const dto = toShiftDto(row, assignedMembershipId);
   // Rule A-07: Strip notes for Staff viewers
   const { notes: _notes, ...publicDto } = dto;
   return publicDto;
@@ -63,21 +73,61 @@ function toPublicShiftDto(row: Awaited<ReturnType<typeof shiftsRepo.findShiftByI
 export const shiftsService = {
   /**
    * Lists shifts for a team.
-   * - Owners/Managers: all statuses including draft; notes included.
-   * - Staff: published only; notes stripped (A-07).
+   * - Owners/Managers: all statuses including draft; notes included. Never cached (D-03).
+   * - Staff: published only; notes stripped (A-07); cached under team:{id}:cal:pub:{start}:{end}:v{n} (D-03).
    */
   async listShifts(
     teamId: string,
-    viewerRole: 'owner' | 'manager' | 'staff'
+    viewerRole: 'owner' | 'manager' | 'staff',
+    range?: { start?: string; end?: string }
   ): Promise<(ShiftDto | ShiftPublicDto)[]> {
     const isStaff = viewerRole === 'staff';
 
-    const rows = await shiftsRepo.listShifts(teamId, {
-      // Staff only see published (A-07)
-      status: isStaff ? 'published' : undefined,
-    });
+    // Rule D-03: Cache only the published, note-free calendar (team:{id}:cal:pub:{start}:{end}:v{n})
+    if (isStaff) {
+      const v = await getTeamCacheVersion(teamId);
+      const startKey = range?.start ?? 'all';
+      const endKey = range?.end ?? 'all';
+      const cacheKey = `team:${teamId}:cal:pub:${startKey}:${endKey}:v${v}`;
 
-    return rows.map((r) => (isStaff ? toPublicShiftDto(r) : toShiftDto(r)));
+      try {
+        const cached = await redisCache.get(cacheKey);
+        if (cached) {
+          return JSON.parse(cached) as ShiftPublicDto[];
+        }
+      } catch {
+        // Fallback to database on cache error
+      }
+
+      const rows = await shiftsRepo.listShifts(teamId, { status: 'published' });
+      const shiftIds = rows.map((r) => r.id);
+      const assignments = await shiftsRepo.listActiveAssignmentsForShifts(teamId, shiftIds);
+      const assignmentMap = new Map(assignments.map((a) => [a.shift_id, a.membership_id]));
+
+      const publicShifts = rows.map((r) => {
+        const assigned = assignmentMap.get(r.id);
+        return toPublicShiftDto(r, assigned);
+      });
+
+      try {
+        await redisCache.set(cacheKey, JSON.stringify(publicShifts), 'EX', 300);
+      } catch {
+        // Non-fatal if Redis write fails
+      }
+
+      return publicShifts;
+    }
+
+    // Manager / Owner view: includes drafts and notes; never cached (Rule D-03)
+    const rows = await shiftsRepo.listShifts(teamId, {});
+    const shiftIds = rows.map((r) => r.id);
+    const assignments = await shiftsRepo.listActiveAssignmentsForShifts(teamId, shiftIds);
+    const assignmentMap = new Map(assignments.map((a) => [a.shift_id, a.membership_id]));
+
+    return rows.map((r) => {
+      const assigned = assignmentMap.get(r.id);
+      return toShiftDto(r, assigned);
+    });
   },
 
   /**
@@ -99,7 +149,10 @@ export const shiftsService = {
       throw new ShiftError('NOT_FOUND', 'Shift not found', 404);
     }
 
-    return viewerRole === 'staff' ? toPublicShiftDto(row) : toShiftDto(row);
+    const assignments = await shiftsRepo.listAssignments(teamId, shiftId);
+    const assigned = assignments[0]?.membership_id ?? null;
+
+    return viewerRole === 'staff' ? toPublicShiftDto(row, assigned) : toShiftDto(row, assigned);
   },
 
   /**
@@ -157,7 +210,7 @@ export const shiftsService = {
       }
     }
 
-    return toShiftDto(row);
+    return toShiftDto(row, input.assignMembershipId ?? null);
   },
 
   /**
@@ -197,6 +250,8 @@ export const shiftsService = {
       startsAt: input.startsAt ? startsAt : undefined,
       endsAt: input.endsAt ? endsAt : undefined,
     });
+
+    await bumpTeamCacheVersion(teamId);
 
     return toShiftDto(row);
   },
@@ -242,7 +297,13 @@ export const shiftsService = {
     }
 
     const row = await shiftsRepo.publishShift(teamId, shiftId, actingMembershipId);
-    return toShiftDto(row);
+    const assignments = await shiftsRepo.listAssignments(teamId, shiftId);
+    const assigned = assignMembershipId ?? assignments[0]?.membership_id ?? null;
+
+    // Rule D-04: Bump the team cache version in the request, right after commit
+    await bumpTeamCacheVersion(teamId);
+
+    return toShiftDto(row, assigned);
   },
 
   /**
@@ -266,6 +327,10 @@ export const shiftsService = {
     }
 
     const row = await shiftsRepo.cancelShift(teamId, shiftId, actingMembershipId);
+
+    // Rule D-04: Bump the team cache version in the request, right after commit
+    await bumpTeamCacheVersion(teamId);
+
     return toShiftDto(row);
   },
 
@@ -296,6 +361,8 @@ export const shiftsService = {
         shiftStartsAt: shift.starts_at,
         shiftEndsAt: shift.ends_at,
       });
+
+      await bumpTeamCacheVersion(teamId);
     } catch (err) {
       if (err instanceof OverlapError) {
         throw new ShiftError('OVERLAPPING_SHIFT', err.message, 409);

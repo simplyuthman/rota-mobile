@@ -103,4 +103,20 @@ export const rateLimits = {
     windowSeconds: 3600,
     identifierExtractor: (req) => (req.params as Record<string, string> | null | undefined)?.['teamId'],
   }),
+
+  checkoutTeam: createRateLimiter({
+    scope: 'checkout:team',
+    maxRequests: 5,
+    windowSeconds: 3600,
+    identifierExtractor: (req) =>
+      (req.params as Record<string, string> | undefined)?.['teamId'] ||
+      (req.headers['x-team-id'] as string | undefined),
+  }),
+
+  feedUser: createRateLimiter({
+    scope: 'feed:user',
+    maxRequests: 60,
+    windowSeconds: 60,
+    identifierExtractor: (req) => req.user?.id || req.ip,
+  }),
 };

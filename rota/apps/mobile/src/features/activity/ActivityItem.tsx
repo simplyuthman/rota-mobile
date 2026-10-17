@@ -7,7 +7,7 @@
 
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Calendar, UserCheck, ArrowLeftRight, CreditCard, Sparkles } from 'lucide-react-native';
+import { Calendar, UserCheck, ArrowLeftRight, CreditCard, Sparkles, XCircle } from 'lucide-react-native';
 import { useTheme, type ThemeContextValue } from '../../theme';
 import type { ActivityEventDto } from '@rota/contracts';
 
@@ -45,37 +45,67 @@ function getEventDescription(eventType: string, params: Record<string, unknown>)
 } {
   switch (eventType) {
     case 'shift.published':
+    case 'shift_published':
       return {
         title: 'Shift published',
         subtitle: typeof params.shiftTitle === 'string' ? params.shiftTitle : 'New shift on the schedule',
         icon: Calendar,
       };
+    case 'shift.cancelled':
+    case 'shift_cancelled':
+      return {
+        title: 'Shift cancelled',
+        subtitle: typeof params.shiftTitle === 'string' ? params.shiftTitle : 'Shift removed from the schedule',
+        icon: XCircle,
+      };
     case 'shift.assigned':
+    case 'shift_assigned':
       return {
         title: 'Shift assigned',
         subtitle: typeof params.shiftTitle === 'string' ? params.shiftTitle : 'Member assigned to shift',
         icon: UserCheck,
       };
     case 'swap.requested':
+    case 'swap_requested':
       return {
         title: 'Shift swap requested',
         subtitle: 'A colleague requested a direct swap',
         icon: ArrowLeftRight,
       };
     case 'swap.accepted':
+    case 'swap_accepted':
       return {
         title: 'Shift swap accepted',
         subtitle: 'Colleague accepted the swap; awaiting manager review',
         icon: ArrowLeftRight,
       };
     case 'swap.approved':
+    case 'swap_approved':
       return {
         title: 'Shift swap approved',
         subtitle: 'Manager approved the shift swap',
         icon: ArrowLeftRight,
       };
+    case 'swap.rejected':
+    case 'swap_rejected':
+    case 'swap.declined':
+    case 'swap_declined':
+      return {
+        title: 'Shift swap declined',
+        subtitle: 'Shift swap request was declined',
+        icon: XCircle,
+      };
+    case 'swap.expired':
+    case 'swap_expired':
+      return {
+        title: 'Shift swap expired',
+        subtitle: 'Swap request expired before approval',
+        icon: ArrowLeftRight,
+      };
     case 'billing.payment_succeeded':
+    case 'billing_payment_succeeded':
     case 'billing.subscription_renewed':
+    case 'billing_subscription_renewed':
       return {
         title: 'Subscription renewed',
         subtitle: 'Monthly team subscription payment confirmed',
@@ -83,7 +113,7 @@ function getEventDescription(eventType: string, params: Record<string, unknown>)
       };
     default:
       return {
-        title: eventType.replace(/[._]/g, ' '),
+        title: eventType.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
         subtitle: 'Team activity update',
         icon: Sparkles,
       };

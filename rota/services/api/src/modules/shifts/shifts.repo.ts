@@ -96,6 +96,21 @@ export const shiftsRepo = {
       .execute();
   },
 
+  async listActiveAssignmentsForShifts(
+    teamId: string,
+    shiftIds: string[]
+  ): Promise<ShiftAssignmentRow[]> {
+    if (shiftIds.length === 0) return [];
+    const db = getShardDb(teamId);
+    return db
+      .selectFrom('shift_assignments')
+      .selectAll()
+      .where('team_id', '=', teamId)
+      .where('shift_id', 'in', shiftIds)
+      .where('status', '=', 'assigned')
+      .execute();
+  },
+
   // ── Writes ─────────────────────────────────────────────────────────────────
 
   async createShift(params: {
@@ -166,22 +181,59 @@ export const shiftsRepo = {
     updatedByMembershipId: string
   ): Promise<ShiftRow> {
     const db = getShardDb(teamId);
-    return db
-      .updateTable('shifts')
-      .set({
-        status: 'published',
-        published_at: new Date(),
-        updated_by_membership_id: updatedByMembershipId,
-        updated_at: new Date(),
-      })
-      .where('team_id', '=', teamId)
-      .where('id', '=', shiftId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    return db.transaction().execute(async (trx) => {
+      const shift = await trx
+        .updateTable('shifts')
+        .set({
+          status: 'published',
+          published_at: new Date(),
+          updated_by_membership_id: updatedByMembershipId,
+          updated_at: new Date(),
+        })
+        .where('team_id', '=', teamId)
+        .where('id', '=', shiftId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+      // Find active assignments for participant list
+      const assignments = await trx
+        .selectFrom('shift_assignments')
+        .select(['membership_id'])
+        .where('team_id', '=', teamId)
+        .where('shift_id', '=', shiftId)
+        .where('status', '=', 'assigned')
+        .execute();
+
+      const participantIds = assignments.map((a) => a.membership_id);
+
+      // Rule D-05: Activity event in the same transaction as the change
+      // Notes are strictly excluded from activity events (Rules A-07, D-03)
+      await trx
+        .insertInto('activity_events')
+        .values({
+          team_id: teamId,
+          actor_membership_id: updatedByMembershipId,
+          event_type: 'shift.published',
+          subject_type: 'shift',
+          subject_id: shift.id,
+          params: {
+            shiftId: shift.id,
+            shiftTitle: shift.title,
+            startsAt: shift.starts_at.toISOString(),
+            endsAt: shift.ends_at.toISOString(),
+            locationLabel: shift.location_label,
+          },
+          visibility: 'team',
+          participant_membership_ids: participantIds,
+        })
+        .execute();
+
+      return shift;
+    });
   },
 
   /**
-   * Cancels a shift and expires all its pending swaps in the SAME transaction (A-10).
+   * Cancels a shift and expires all its pending swaps in the SAME transaction (A-10, D-05).
    */
   async cancelShift(
     teamId: string,
@@ -214,6 +266,24 @@ export const shiftsRepo = {
         .where('team_id', '=', teamId)
         .where('shift_id', '=', shiftId)
         .where('status', '=', 'pending')
+        .execute();
+
+      // Rule D-05: Record shift cancellation activity event in the same transaction
+      await trx
+        .insertInto('activity_events')
+        .values({
+          team_id: teamId,
+          actor_membership_id: updatedByMembershipId,
+          event_type: 'shift.cancelled',
+          subject_type: 'shift',
+          subject_id: shift.id,
+          params: {
+            shiftId: shift.id,
+            shiftTitle: shift.title,
+          },
+          visibility: 'team',
+          participant_membership_ids: [],
+        })
         .execute();
 
       return shift;

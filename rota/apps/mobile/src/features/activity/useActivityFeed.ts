@@ -9,6 +9,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
 import type { ActivityFeedResponse } from '@rota/contracts';
 import { useCurrentUser } from '../auth/useAuth';
+import { useUIStore } from '../../state/uiStore';
 
 export const ACTIVITY_KEYS = {
   feed: (teamId: string) => ['activity', 'feed', teamId] as const,
@@ -16,7 +17,10 @@ export const ACTIVITY_KEYS = {
 
 export function useActivityFeed() {
   const { data: currentUser } = useCurrentUser();
-  const teamId = currentUser?.teams?.[0]?.id;
+  const { selectedTeamId } = useUIStore();
+  const teams = currentUser?.teams ?? [];
+  const activeTeam = teams.find((t) => t.id === selectedTeamId) ?? teams[0];
+  const teamId = activeTeam?.id;
 
   return useInfiniteQuery<ActivityFeedResponse, Error>({
     queryKey: ACTIVITY_KEYS.feed(teamId ?? ''),

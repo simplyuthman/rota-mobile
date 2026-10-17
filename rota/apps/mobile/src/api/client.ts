@@ -36,10 +36,13 @@ apiClient.interceptors.request.use(async (config) => {
 // Shared in-flight refresh promise (Rule S-05)
 let refreshPromise: Promise<string | null> | null = null;
 
+import { wipeOfflineShifts } from '../storage/offlineStore';
+
 async function refreshAuthTokens(): Promise<string | null> {
   const currentRefreshToken = await getRefreshToken();
   if (!currentRefreshToken) {
     await clearAuthTokens();
+    await wipeOfflineShifts(); // Rule P-01: wipe persisted shift cache on session revocation
     return null;
   }
 
@@ -55,6 +58,7 @@ async function refreshAuthTokens(): Promise<string | null> {
     return accessToken;
   } catch {
     await clearAuthTokens();
+    await wipeOfflineShifts(); // Rule P-01: wipe on refresh failure
     return null;
   } finally {
     refreshPromise = null;

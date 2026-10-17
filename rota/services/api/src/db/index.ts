@@ -28,65 +28,130 @@
 import { Kysely, PostgresDialect, sql, type Transaction } from 'kysely';
 import pg from 'pg';
 import { env } from '../config/env.js';
+import { redisCache } from './redis.js';
 import type { ControlPlaneDB, ShardDB } from './schema.js';
 
 export type ShardTransaction = Transaction<ShardDB>;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Pool Configuration & Rationale (Phase 8, AGENTS.md §2.2, D-07) ───────────
+
+export interface PoolConfigOptions {
+  max: number;
+  idleTimeoutMillis: number;
+  connectionTimeoutMillis: number;
+  statementTimeoutMillis: number;
+}
 
 /**
- * Creates a Kysely pool for a given connection string.
- * All pool settings are conservative defaults for Phase 1.
- * They will be tuned and justified in Phase 8 (AGENTS.md §2.2, D-07).
+ * Pool sizing rationale (AGENTS.md §2.2, TRD §2, SHARDING.md):
+ * - Control Plane: Max 10 connections. Serves auth, tokens, billing quotes, and directory.
+ * - Shard 0 & 1 Primaries: Max 20 connections each. Serves all transactional writes & critical reads.
+ * - Shard 0 & 1 Replicas: Max 20 connections each. Offloads staff feeds and published rosters.
+ * - Statement Timeout: 10,000 ms to terminate long-running runaway queries before they hold locks.
+ * - Connection Timeout: 5,000 ms to fail fast under catastrophic pool saturation.
+ * - Idle Timeout: 30,000 ms to release unused connections gracefully back to PostgreSQL.
  */
-function makePool(connectionString: string): pg.Pool {
-  return new pg.Pool({
-    connectionString,
+export interface PoolConfigMap {
+  controlPlane: PoolConfigOptions;
+  controlPlaneRead: PoolConfigOptions;
+  shard0: PoolConfigOptions;
+  shard0Read: PoolConfigOptions;
+  shard1: PoolConfigOptions;
+  shard1Read: PoolConfigOptions;
+}
+
+export const POOL_CONFIG: PoolConfigMap = {
+  controlPlane: {
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+  controlPlaneRead: {
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+  shard0: {
+    max: 20,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+  shard0Read: {
+    max: 20,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+  shard1: {
+    max: 20,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+  shard1Read: {
+    max: 20,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+    statementTimeoutMillis: 10_000,
+  },
+};
+
+function makePool(connectionString: string, cfg: PoolConfigOptions): pg.Pool {
+  return new pg.Pool({
+    connectionString,
+    max: cfg.max,
+    idleTimeoutMillis: cfg.idleTimeoutMillis,
+    connectionTimeoutMillis: cfg.connectionTimeoutMillis,
+    statement_timeout: cfg.statementTimeoutMillis,
   });
 }
 
 // ─── Control-plane connections ────────────────────────────────────────────────
 
-/** Write connection for the control-plane database. */
+export const controlPlanePool = makePool(env.DATABASE_CONTROL_URL, POOL_CONFIG.controlPlane);
 export const controlPlane = new Kysely<ControlPlaneDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_CONTROL_URL) }),
+  dialect: new PostgresDialect({ pool: controlPlanePool }),
 });
 
-/**
- * Read connection for the control-plane database.
- * In dev this points to the same primary as controlPlane.
- * In production, point DATABASE_CONTROL_READ_URL to a read replica.
- */
+export function getControlPlaneDb(): Kysely<ControlPlaneDB> {
+  return controlPlane;
+}
+
+export const controlPlaneReadPool = makePool(env.DATABASE_CONTROL_READ_URL, POOL_CONFIG.controlPlaneRead);
 export const controlPlaneRead = new Kysely<ControlPlaneDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_CONTROL_READ_URL) }),
+  dialect: new PostgresDialect({ pool: controlPlaneReadPool }),
 });
 
 // ─── Shard connections ────────────────────────────────────────────────────────
 
+export const shard0Pool = makePool(env.DATABASE_SHARD_0_URL, POOL_CONFIG.shard0);
 export const shard0 = new Kysely<ShardDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_SHARD_0_URL) }),
+  dialect: new PostgresDialect({ pool: shard0Pool }),
 });
 
+export const shard0ReadPool = makePool(env.DATABASE_SHARD_0_READ_URL, POOL_CONFIG.shard0Read);
 export const shard0Read = new Kysely<ShardDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_SHARD_0_READ_URL) }),
+  dialect: new PostgresDialect({ pool: shard0ReadPool }),
 });
 
+export const shard1Pool = makePool(env.DATABASE_SHARD_1_URL, POOL_CONFIG.shard1);
 export const shard1 = new Kysely<ShardDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_SHARD_1_URL) }),
+  dialect: new PostgresDialect({ pool: shard1Pool }),
 });
 
+export const shard1ReadPool = makePool(env.DATABASE_SHARD_1_READ_URL, POOL_CONFIG.shard1Read);
 export const shard1Read = new Kysely<ShardDB>({
-  dialect: new PostgresDialect({ pool: makePool(env.DATABASE_SHARD_1_READ_URL) }),
+  dialect: new PostgresDialect({ pool: shard1ReadPool }),
 });
 
 // ─── Shard routing ────────────────────────────────────────────────────────────
 
 /**
  * CRC-32 polynomial table, pre-computed.
- * This is the standard CRC-32 (ISO 3309) used across languages and platforms.
+ * Standard CRC-32 (ISO 3309) used across languages and platforms.
  * Documented in SHARDING.md as the stable hash function for team routing.
  */
 const CRC32_TABLE = (function buildTable(): Uint32Array {
@@ -104,13 +169,8 @@ const CRC32_TABLE = (function buildTable(): Uint32Array {
 /**
  * Computes CRC-32 of a UTF-8 string.
  * Returns an unsigned 32-bit integer.
- *
- * This function MUST NOT be changed without:
- *   1. A new migration to update team_directory rows.
- *   2. A new decision record in docs/decisions/.
- *   3. An update to SHARDING.md.
  */
-function crc32(str: string): number {
+export function crc32(str: string): number {
   const bytes = new TextEncoder().encode(str);
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -125,7 +185,6 @@ function crc32(str: string): number {
 /**
  * Returns the shard ID (0 or 1) for a given team ID.
  * Uses CRC-32 mod 2 — documented in SHARDING.md.
- * The result is authoritative only after it is recorded in team_directory.
  */
 export function getShardId(teamId: string): 0 | 1 {
   return (crc32(teamId) % 2) as 0 | 1;
@@ -140,11 +199,114 @@ export function getShardDb(teamId: string): Kysely<ShardDB> {
 }
 
 /**
- * Returns the read Kysely instance for a given team ID.
- * Subject to the read-your-own-writes policy (5s after a write → primary).
+ * Returns the default read Kysely instance for a given team ID (replica).
  */
 export function getShardReadDb(teamId: string): Kysely<ShardDB> {
   return getShardId(teamId) === 0 ? shard0Read : shard1Read;
+}
+
+// ─── Read-Your-Own-Writes (TRD §2, AGENTS.md §2.2) ────────────────────────────
+
+/**
+ * Records that a user completed a write operation.
+ * Sets user:{userId}:last_write in Redis with a 5-second TTL.
+ */
+export async function recordUserWrite(userId: string): Promise<void> {
+  try {
+    await redisCache.set(`user:${userId}:last_write`, Date.now().toString(), 'EX', 5);
+  } catch {
+    // Non-fatal if Redis is transiently unreachable
+  }
+}
+
+/**
+ * Checks whether the given user is within their 5-second read-your-own-writes window.
+ */
+export async function isUserInWriteWindow(userId: string): Promise<boolean> {
+  try {
+    const val = await redisCache.get(`user:${userId}:last_write`);
+    return val !== null;
+  } catch {
+    // Fail safe to primary if Redis is down
+    return true;
+  }
+}
+
+export interface ReadRouteResolution {
+  shardId: 0 | 1;
+  isPrimary: boolean;
+  reason: 'write_window' | 'replica_default';
+  db: Kysely<ShardDB>;
+}
+
+/**
+ * Resolves whether a read query for a given team and user routes to Primary or Replica.
+ * In accordance with TRD §2: 5 seconds after a user's write, their reads use the primary.
+ */
+export async function resolveReadRoute(teamId: string, userId?: string): Promise<ReadRouteResolution> {
+  const shardId = getShardId(teamId);
+  if (userId) {
+    const inWindow = await isUserInWriteWindow(userId);
+    if (inWindow) {
+      return {
+        shardId,
+        isPrimary: true,
+        reason: 'write_window',
+        db: shardId === 0 ? shard0 : shard1,
+      };
+    }
+  }
+  return {
+    shardId,
+    isPrimary: false,
+    reason: 'replica_default',
+    db: shardId === 0 ? shard0Read : shard1Read,
+  };
+}
+
+/**
+ * Returns the read Kysely instance for a given team ID, honoring read-your-own-writes.
+ */
+export async function getShardReadDbForUser(teamId: string, userId?: string): Promise<Kysely<ShardDB>> {
+  const route = await resolveReadRoute(teamId, userId);
+  return route.db;
+}
+
+// ─── Pool Metrics & Diagnostics ───────────────────────────────────────────────
+
+export function getPoolMetrics() {
+  return {
+    controlPlane: {
+      totalCount: controlPlanePool.totalCount,
+      idleCount: controlPlanePool.idleCount,
+      waitingCount: controlPlanePool.waitingCount,
+      max: POOL_CONFIG.controlPlane.max,
+    },
+    shard0: {
+      totalCount: shard0Pool.totalCount,
+      idleCount: shard0Pool.idleCount,
+      waitingCount: shard0Pool.waitingCount,
+      max: POOL_CONFIG.shard0.max,
+    },
+    shard0Read: {
+      totalCount: shard0ReadPool.totalCount,
+      idleCount: shard0ReadPool.idleCount,
+      waitingCount: shard0ReadPool.waitingCount,
+      max: POOL_CONFIG.shard0Read.max,
+    },
+    shard1: {
+      totalCount: shard1Pool.totalCount,
+      idleCount: shard1Pool.idleCount,
+      waitingCount: shard1Pool.waitingCount,
+      max: POOL_CONFIG.shard1.max,
+    },
+    shard1Read: {
+      totalCount: shard1ReadPool.totalCount,
+      idleCount: shard1ReadPool.idleCount,
+      waitingCount: shard1ReadPool.waitingCount,
+      max: POOL_CONFIG.shard1Read.max,
+    },
+  };
 }
 
 // ─── Health check ─────────────────────────────────────────────────────────────

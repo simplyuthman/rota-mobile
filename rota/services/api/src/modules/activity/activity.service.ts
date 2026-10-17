@@ -10,6 +10,7 @@
 import { activityRepo, type ActivityEventRow } from './activity.repo.js';
 import { encodeCursor, decodeCursor } from './activity.schemas.js';
 import { redisCache } from '../../db/redis.js';
+import { getTeamCacheVersion, bumpTeamCacheVersion } from '../../db/cacheVersion.js';
 import type { ActivityEventDto, ActivityFeedResponse } from '@rota/contracts';
 import type { ShardTransaction } from '../../db/index.js';
 
@@ -62,23 +63,14 @@ export class ActivityService {
    * Gets the current feed cache version for the team (Rule D-04).
    */
   private async getCacheVersion(teamId: string): Promise<string> {
-    try {
-      const v = await redisCache.get(`team:${teamId}:feed:version`);
-      return v || '1';
-    } catch {
-      return '1';
-    }
+    return getTeamCacheVersion(teamId);
   }
 
   /**
    * Bumps the feed cache version in the request, right after commit (Rule D-04).
    */
   async bumpCacheVersion(teamId: string): Promise<void> {
-    try {
-      await redisCache.incr(`team:${teamId}:feed:version`);
-    } catch {
-      // Non-fatal if Redis is transiently unreachable; DB remains source of truth
-    }
+    await bumpTeamCacheVersion(teamId);
   }
 
   /**
@@ -96,6 +88,11 @@ export class ActivityService {
     // Rule D-03: First-page caching check (newest 50 raw events per team, 30s)
     if (isFirstPage) {
       try {
+        const backfilled = await activityRepo.backfillPublishedShifts(teamId);
+        if (backfilled > 0) {
+          await this.bumpCacheVersion(teamId);
+        }
+
         const v = await this.getCacheVersion(teamId);
         const cacheKey = `team:${teamId}:feed:first:v${v}`;
         let rawEvents: ActivityEventRow[] | null = null;

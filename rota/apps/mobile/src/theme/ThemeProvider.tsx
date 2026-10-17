@@ -8,7 +8,7 @@
  * Styles Android status bar with expo-status-bar.
  */
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -27,6 +27,8 @@ export type ThemePreference = 'light' | 'dark' | 'system';
 
 export interface ThemeContextValue {
   name: ThemeName;
+  preference: ThemePreference;
+  setPreference: (pref: ThemePreference) => void;
   colors: (typeof colorRoles)[ThemeName];
   spacing: typeof spacing;
   typography: typeof typography;
@@ -46,17 +48,20 @@ export interface ThemeProviderProps {
 
 export function ThemeProvider({ children, preference = 'system' }: ThemeProviderProps) {
   const systemScheme = useColorScheme();
+  const [currentPreference, setCurrentPreference] = useState<ThemePreference>(preference);
 
   const effectiveTheme: ThemeName = useMemo(() => {
-    if (preference === 'light' || preference === 'dark') {
-      return preference;
+    if (currentPreference === 'light' || currentPreference === 'dark') {
+      return currentPreference;
     }
     return systemScheme === 'dark' ? 'dark' : 'light';
-  }, [preference, systemScheme]);
+  }, [currentPreference, systemScheme]);
 
   const value: ThemeContextValue = useMemo(() => {
     return {
       name: effectiveTheme,
+      preference: currentPreference,
+      setPreference: setCurrentPreference,
       colors: colorRoles[effectiveTheme],
       spacing,
       typography,
@@ -66,7 +71,7 @@ export function ThemeProvider({ children, preference = 'system' }: ThemeProvider
       touchTarget: 48,
       getShadow: getShadowStyle,
     };
-  }, [effectiveTheme]);
+  }, [effectiveTheme, currentPreference]);
 
   return (
     <ThemeContext.Provider value={value}>

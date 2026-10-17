@@ -103,7 +103,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       if (request.tokenFamilyId) {
-        await authService.logout(request.tokenFamilyId);
+        await authService.logout(request.tokenFamilyId, request.userId);
       }
       return reply.status(200).send({ message: 'Logged out successfully.' });
     }

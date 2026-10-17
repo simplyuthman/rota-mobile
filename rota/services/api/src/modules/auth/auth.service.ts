@@ -19,6 +19,7 @@ import { redisCache } from '../../db/redis.js';
 import { authRepo, type UserRow } from './auth.repo.js';
 import { teamsRepo } from '../teams/teams.repo.js';
 import { getEmailAdapter } from '../../adapters/email/index.js';
+import { pushDevicesRepo } from '../notifications/push-devices.repo.js';
 import type {
   SignUpRequest,
   SignInPasswordRequest,
@@ -179,7 +180,7 @@ export const authService = {
 
     // Send email verification code
     const rawCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const codeHash = this.hashToken(rawCode);
+    const codeHash = this.hashToken(`${user.id}:${rawCode}`);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await authRepo.createAuthToken({
@@ -289,14 +290,19 @@ export const authService = {
 
   // ─── Logout & Revocation ───────────────────────────────────────────────────
 
-  async logout(tokenFamilyId: string): Promise<void> {
+  async logout(tokenFamilyId: string, userId?: string): Promise<void> {
     await authRepo.revokeSessionFamily(tokenFamilyId);
     await this.markSidRevoked(tokenFamilyId);
+    if (userId) {
+      await pushDevicesRepo.deactivateAllForUser(userId);
+    }
   },
 
   async logoutAll(userId: string): Promise<void> {
     const revokedFamilyIds = await authRepo.revokeAllUserSessions(userId);
     await Promise.all(revokedFamilyIds.map((sid) => this.markSidRevoked(sid)));
+    // Rule P-04: Deactivate the device push token on logout and logout-all
+    await pushDevicesRepo.deactivateAllForUser(userId);
   },
 
   // ─── Magic Link ────────────────────────────────────────────────────────────
@@ -416,7 +422,7 @@ export const authService = {
   // ─── Email Verification Code ───────────────────────────────────────────────
 
   async verifyEmailCode(userId: string, rawCode: string): Promise<void> {
-    const codeHash = this.hashToken(rawCode);
+    const codeHash = this.hashToken(`${userId}:${rawCode}`);
     const tokenRow = await authRepo.findAuthTokenByHash(codeHash, 'email_verify_code');
 
     if (

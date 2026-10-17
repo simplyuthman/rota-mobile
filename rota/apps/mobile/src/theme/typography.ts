@@ -31,6 +31,7 @@ export const textStyles: Record<TypographyRole, TextStyle> = Object.entries(
       fontSize: val.size,
       lineHeight: val.lineHeight,
       letterSpacing: val.letterSpacing,
+      fontWeight: String(val.weight) as TextStyle['fontWeight'],
       fontFamily: getFontFamilyForWeight(val.weight),
     };
     return acc;

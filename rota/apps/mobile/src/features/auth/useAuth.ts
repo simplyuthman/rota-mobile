@@ -16,6 +16,8 @@ import type {
   AcceptInvitationRequest,
 } from '@rota/contracts';
 
+import { wipeOfflineShifts } from '../../storage/offlineStore';
+
 export const AUTH_KEYS = {
   me: ['auth', 'me'] as const,
   invite: (token: string) => ['auth', 'invite', token] as const,
@@ -48,6 +50,7 @@ export function useSignIn() {
       return response.data;
     },
     onSuccess: async (data) => {
+      await wipeOfflineShifts(); // Rule P-01: clear previous user cache on sign-in
       await setAccessToken(data.session.accessToken);
       await setRefreshToken(data.session.refreshToken);
       await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.me });
@@ -64,6 +67,7 @@ export function useSignUp() {
       return response.data;
     },
     onSuccess: async (data) => {
+      await wipeOfflineShifts(); // Rule P-01
       await setAccessToken(data.session.accessToken);
       await setRefreshToken(data.session.refreshToken);
       await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.me });
@@ -91,6 +95,7 @@ export function useSignOut() {
         // Continue clearing client storage regardless of network error
       } finally {
         await clearAuthTokens();
+        await wipeOfflineShifts(); // Rule P-01: wipe persisted shift cache on logout
         queryClient.removeQueries();
       }
     },

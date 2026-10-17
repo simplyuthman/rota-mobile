@@ -11,6 +11,7 @@ import { invitationsRepo, SeatLimitError } from './invitations.repo.js';
 import { teamsRepo } from '../teams/teams.repo.js';
 import { authRepo } from '../auth/auth.repo.js';
 import { getEmailAdapter } from '../../adapters/email/index.js';
+import { bumpTeamCacheVersion } from '../../db/cacheVersion.js';
 import type { InvitationDto, TeamMembershipDto } from '@rota/contracts';
 
 export class InvitationError extends Error {
@@ -225,6 +226,9 @@ export const invitationsService = {
         userId,
         role: inv.intended_role,
       });
+
+      // Rule D-04: Bump team cache version on membership activation
+      await bumpTeamCacheVersion(teamId);
 
       return {
         membership: {

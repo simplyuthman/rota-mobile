@@ -52,9 +52,10 @@ export type SubscriptionPlan = z.infer<typeof SubscriptionPlanSchema>;
 export const SubscriptionStatusSchema = z.enum([
   'trialing',
   'active',
+  'past_due',
   'grace',
   'restricted',
-  'canceled',
+  'cancelled',
 ]);
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatusSchema>;
 
@@ -180,6 +181,8 @@ export const TeamMembershipDtoSchema = z.object({
   status: z.enum(['invited', 'active', 'suspended', 'removed']),
   activatedAt: z.string().nullable(),
   createdAt: z.string(),
+  displayName: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
 });
 export type TeamMembershipDto = z.infer<typeof TeamMembershipDtoSchema>;
 
@@ -240,6 +243,7 @@ export const ShiftDtoSchema = z.object({
   cancelledAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  assignedMembershipId: z.string().uuid().nullable().optional(),
 });
 export type ShiftDto = z.infer<typeof ShiftDtoSchema>;
 
@@ -352,4 +356,192 @@ export const ActivityFeedResponseSchema = z.object({
   nextCursor: z.string().nullable(),
 });
 export type ActivityFeedResponse = z.infer<typeof ActivityFeedResponseSchema>;
+
+// =============================================================================
+// User Settings & Push Device DTOs (PRD §6.6, §6.7, Rules P-04, P-06, P-07, P-08)
+// =============================================================================
+
+export const NotificationPreferencesSchema = z.object({
+  shiftChanges: z.boolean().default(true),
+  swaps: z.boolean().default(true),
+  billing: z.boolean().default(true),
+  activity: z.boolean().default(true),
+  security: z.boolean().default(true), // non-disableable
+});
+export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
+
+export const UserSettingsDtoSchema = z.object({
+  userId: z.string().uuid(),
+  timezone: z.string(),
+  quietHoursEnabled: z.boolean(),
+  quietHoursStart: z.string().nullable(),
+  quietHoursEnd: z.string().nullable(),
+  notificationPreferences: NotificationPreferencesSchema,
+  language: z.string(),
+  theme: z.enum(['light', 'dark', 'system']),
+  fieldUpdatedAt: z.record(z.string()),
+  version: z.number().int(),
+  updatedAt: z.string(),
+});
+export type UserSettingsDto = z.infer<typeof UserSettingsDtoSchema>;
+
+export const UpdateUserSettingsRequestSchema = z.object({
+  timezone: z.string().min(1).optional(),
+  quietHoursEnabled: z.boolean().optional(),
+  quietHoursStart: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/, 'Invalid time format (HH:MM)')
+    .nullable()
+    .optional(),
+  quietHoursEnd: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/, 'Invalid time format (HH:MM)')
+    .nullable()
+    .optional(),
+  notificationPreferences: NotificationPreferencesSchema.partial().optional(),
+  language: z.string().min(2).max(10).optional(),
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+});
+export type UpdateUserSettingsRequest = z.infer<typeof UpdateUserSettingsRequestSchema>;
+
+export const RegisterPushTokenRequestSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  provider: z.enum(['expo', 'fcm']).default('expo'),
+  platform: z.enum(['ios', 'android']),
+  deviceLabel: z.string().max(100).optional(),
+});
+export type RegisterPushTokenRequest = z.infer<typeof RegisterPushTokenRequestSchema>;
+
+export const TestPushRequestSchema = z.object({
+  type: z.enum(['shift', 'swap', 'billing', 'activity', 'security']).default('activity'),
+  teamId: z.string().uuid().optional(),
+  entityId: z.string().optional(),
+  title: z.string().max(100).optional(),
+  body: z.string().max(250).optional(),
+});
+export type TestPushRequest = z.infer<typeof TestPushRequestSchema>;
+
+// =============================================================================
+// Billing & Subscriptions (PRD §6.8, AGENTS.md §2.2, §3.1 M-01 through M-15)
+// =============================================================================
+
+export const PLAN_CONSTANTS = {
+  starter: {
+    plan: 'starter' as const,
+    name: 'Starter',
+    basePriceCents: 2000,
+    includedSeats: 5,
+    extraSeatPriceCents: null,
+    seatCeiling: 5,
+  },
+  team: {
+    plan: 'team' as const,
+    name: 'Team',
+    basePriceCents: 5000,
+    includedSeats: 15,
+    extraSeatPriceCents: 300,
+    seatCeiling: 38,
+  },
+  business: {
+    plan: 'business' as const,
+    name: 'Business',
+    basePriceCents: 12000,
+    includedSeats: 40,
+    extraSeatPriceCents: 200,
+    seatCeiling: 100,
+  },
+} as const;
+
+export type PlanName = keyof typeof PLAN_CONSTANTS;
+
+export function calculateRecurringAmountCents(plan: PlanName, seats: number): number {
+  const config = PLAN_CONSTANTS[plan];
+  if (!config) throw new Error(`Unknown plan: ${plan}`);
+  if (plan === 'starter' && seats !== 5) {
+    throw new Error('Starter plan must have exactly 5 seats');
+  }
+  if (plan === 'team' && (seats < 15 || seats > 38)) {
+    throw new Error('Team plan seats must be between 15 and 38');
+  }
+  if (plan === 'business' && (seats < 40 || seats > 100)) {
+    throw new Error('Business plan seats must be between 40 and 100');
+  }
+  const extraSeats = Math.max(0, seats - config.includedSeats);
+  const extraCost = config.extraSeatPriceCents ? extraSeats * config.extraSeatPriceCents : 0;
+  return config.basePriceCents + extraCost;
+}
+
+export const PlanNameSchema = z.enum(['starter', 'team', 'business']);
+
+export const SubscriptionDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  plan: PlanNameSchema,
+  status: SubscriptionStatusSchema,
+  currency: z.string(),
+  basePriceCents: z.number().int(),
+  includedSeats: z.number().int(),
+  extraSeatPriceCents: z.number().int().nullable(),
+  purchasedSeats: z.number().int(),
+  currentRecurringCents: z.number().int(),
+  scheduledPlan: PlanNameSchema.nullable(),
+  scheduledPurchasedSeats: z.number().int().nullable(),
+  scheduledEffectiveAt: z.string().nullable(),
+  trialEndsAt: z.string().nullable(),
+  periodStart: z.string().nullable(),
+  periodEnd: z.string().nullable(),
+  graceUntil: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type SubscriptionDto = z.infer<typeof SubscriptionDtoSchema>;
+
+export const BillingQuoteRequestSchema = z.object({
+  plan: PlanNameSchema,
+  purchasedSeats: z.number().int().min(1).max(100),
+});
+export type BillingQuoteRequest = z.infer<typeof BillingQuoteRequestSchema>;
+
+export const BillingQuoteDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  plan: PlanNameSchema,
+  purchasedSeats: z.number().int(),
+  isImmediate: z.boolean(),
+  amountCents: z.number().int(),
+  currentRecurringCents: z.number().int(),
+  newRecurringCents: z.number().int(),
+  creditCents: z.number().int(),
+  costCents: z.number().int(),
+  effectiveAt: z.string(),
+  expiresAt: z.string(),
+});
+export type BillingQuoteDto = z.infer<typeof BillingQuoteDtoSchema>;
+
+export const CheckoutRequestSchema = z.object({
+  quoteId: z.string().uuid(),
+  idempotencyKey: z.string().min(1).max(100),
+});
+export type CheckoutRequest = z.infer<typeof CheckoutRequestSchema>;
+
+export const CheckoutResponseSchema = z.object({
+  checkoutUrl: z.string(),
+  quoteId: z.string().uuid(),
+  amountCents: z.number().int(),
+  currency: z.string(),
+});
+export type CheckoutResponse = z.infer<typeof CheckoutResponseSchema>;
+
+export const BillingLedgerEntryDtoSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  entryType: z.enum(['charge', 'credit', 'refund', 'adjustment']),
+  amountCents: z.number().int(),
+  currency: z.string(),
+  reason: z.string(),
+  planAfter: PlanNameSchema,
+  purchasedSeatsAfter: z.number().int(),
+  createdAt: z.string(),
+});
+export type BillingLedgerEntryDto = z.infer<typeof BillingLedgerEntryDtoSchema>;
 

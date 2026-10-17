@@ -13,6 +13,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../../middleware/auth.js';
 import { requireTeamMember } from '../../middleware/tenant.js';
+import { rateLimits } from '../../middleware/rateLimit.js';
 import { activityService } from './activity.service.js';
 import { ActivityFeedQuerySchema } from '@rota/contracts';
 
@@ -22,7 +23,7 @@ export const activityRoutes: FastifyPluginAsync = async (fastify) => {
     Querystring: { cursor?: string; limit?: string };
   }>(
     '/teams/:teamId/activity',
-    { preHandler: [requireAuth, requireTeamMember] },
+    { preHandler: [requireAuth, requireTeamMember, rateLimits.feedUser] },
     async (request, reply) => {
       const { teamId } = request.params;
       const membership = request.membership!;

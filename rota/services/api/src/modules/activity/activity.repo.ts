@@ -152,4 +152,46 @@ export const activityRepo = {
 
     return parseInt(result.rows[0]?.count ?? '0', 10);
   },
+
+  /**
+   * Backfills any existing published shifts that are missing from activity_events.
+   */
+  async backfillPublishedShifts(teamId: string): Promise<number> {
+    const db = getShardDb(teamId);
+    const result = await sql`
+      INSERT INTO activity_events (
+        team_id, actor_membership_id, event_type, subject_type, subject_id,
+        params, visibility, participant_membership_ids, created_at
+      )
+      SELECT
+        s.team_id,
+        s.updated_by_membership_id,
+        'shift.published',
+        'shift',
+        s.id,
+        json_build_object(
+          'shiftId', s.id,
+          'shiftTitle', s.title,
+          'startsAt', to_char(s.starts_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+          'endsAt', to_char(s.ends_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+          'locationLabel', s.location_label
+        )::jsonb,
+        'team'::activity_visibility,
+        COALESCE(
+          (SELECT array_agg(sa.membership_id) FROM shift_assignments sa WHERE sa.shift_id = s.id AND sa.status = 'assigned'),
+          ARRAY[]::uuid[]
+        ),
+        COALESCE(s.published_at, s.updated_at, s.created_at)
+      FROM shifts s
+      WHERE s.team_id = ${teamId}::uuid
+        AND s.status = 'published'
+        AND NOT EXISTS (
+          SELECT 1 FROM activity_events ae
+          WHERE ae.team_id = s.team_id
+            AND ae.subject_id = s.id
+            AND ae.event_type = 'shift.published'
+        )
+    `.execute(db);
+    return Number(result.numAffectedRows ?? 0);
+  },
 };
