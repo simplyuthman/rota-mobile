@@ -27,13 +27,9 @@ services:
       pnpm build:packages &&
       pnpm --filter @rota/api build
 
-    # Release (runs before start — runs migrations)
-    preDeployCommand: node services/api/scripts/migrate.js
-
     # Start
-    # Uses PM2 to run both Fastify API and BullMQ worker in one free container.
-    # To run API only, use: node services/api/dist/server.js
-    startCommand: npx pm2-runtime start ecosystem.config.cjs
+    # Runs database migrations, then starts Fastify API and BullMQ worker via PM2 in one free container.
+    startCommand: node services/api/scripts/migrate.js && npx pm2-runtime start ecosystem.config.cjs
 
     healthCheckPath: /health/live
 

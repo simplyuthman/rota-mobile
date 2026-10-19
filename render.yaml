@@ -30,12 +30,8 @@ services:
       pnpm build:packages &&
       pnpm --filter @rota/api build
 
-    # Pre-Deploy: automatically runs database migrations before serving traffic
-    preDeployCommand: node services/api/scripts/migrate.js
-
-    # Start: runs both API and BullMQ worker via PM2 ecosystem
-    # (Or use "node services/api/dist/server.js" if running API only)
-    startCommand: npx pm2-runtime start ecosystem.config.cjs
+    # Start: runs database migrations, then starts API and BullMQ worker via PM2
+    startCommand: node services/api/scripts/migrate.js && npx pm2-runtime start ecosystem.config.cjs
 
     healthCheckPath: /health/live
 
