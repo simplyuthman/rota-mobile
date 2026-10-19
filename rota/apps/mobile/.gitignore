@@ -4,3 +4,28 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# Environment — never commit real values (Rule S-01)
+.env
+.env.local
+.env.*.local
+
+# Expo / EAS generated
+.expo/
+android/
+ios/
+
+# EAS build outputs — download from expo.dev
+*.apk
+*.aab
+*.ipa
+
+# Credentials — never commit (Rule S-01)
+google-services.json
+GoogleService-Info.plist
+credentials.json
+*.keystore
+*.jks
+*.p12
+*.p8
+*.pem

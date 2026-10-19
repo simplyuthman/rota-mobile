@@ -68,8 +68,8 @@ export function OfflineBanner({
           </Pressable>
         )}
 
-        {/* Demo Mode Toggle Button */}
-        {isSimulatedOffline && (
+        {/* Demo Mode Toggle Button — dev builds only */}
+        {__DEV__ && isSimulatedOffline && (
           <Pressable
             onPress={toggleSimulatedOffline}
             style={styles.resumeButton}

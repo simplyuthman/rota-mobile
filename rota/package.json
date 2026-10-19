@@ -12,6 +12,9 @@
   "scripts": {
     "build": "pnpm -r --if-present run build",
     "build:packages": "pnpm --filter \"@rota/config\" --filter \"@rota/contracts\" build",
+    "build:prod": "pnpm build:packages && pnpm --filter @rota/api build",
+    "start:prod": "node services/api/dist/server.js",
+    "start:worker": "node services/api/dist/jobs/index.js",
     "dev:api": "pnpm --filter @rota/api dev",
     "tokens": "pnpm --filter @rota/mobile tokens",
     "typecheck": "pnpm build:packages && pnpm -r --if-present run typecheck",

@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.rota.mobile",
-      "usesCleartextTraffic": true,
+      "usesCleartextTraffic": false,
       "intentFilters": [
         {
           "action": "VIEW",

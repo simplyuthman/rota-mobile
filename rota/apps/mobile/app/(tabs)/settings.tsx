@@ -69,9 +69,16 @@ import { InviteMemberModal } from '../../src/features/teams/InviteMemberModal';
 import { CreateTeamModal } from '../../src/features/teams/CreateTeamModal';
 import { JoinTeamModal } from '../../src/features/teams/JoinTeamModal';
 import { BillingModal } from '../../src/features/billing/BillingModal';
-import { PushNotificationSimulatorModal } from '../../src/features/notifications/PushNotificationSimulatorModal';
-import { SystemDiagnosticsModal } from '../../src/features/system/SystemDiagnosticsModal';
-import { ProductionReadinessModal } from '../../src/features/system/ProductionReadinessModal';
+// Dev-only tools — excluded from production/preview builds
+const PushNotificationSimulatorModal = __DEV__
+  ? require('../../src/features/notifications/PushNotificationSimulatorModal').PushNotificationSimulatorModal
+  : null;
+const SystemDiagnosticsModal = __DEV__
+  ? require('../../src/features/system/SystemDiagnosticsModal').SystemDiagnosticsModal
+  : null;
+const ProductionReadinessModal = __DEV__
+  ? require('../../src/features/system/ProductionReadinessModal').ProductionReadinessModal
+  : null;
 import { useSubscription } from '../../src/features/billing/useBilling';
 import { getErrorMessage } from '../../src/utils/error';
 import type { TeamMembershipDto, Role } from '@rota/contracts';
@@ -116,9 +123,10 @@ export default function SettingsScreen() {
   const [createTeamModalOpen, setCreateTeamModalOpen] = useState(false);
   const [joinTeamModalOpen, setJoinTeamModalOpen] = useState(false);
   const [billingModalOpen, setBillingModalOpen] = useState(false);
-  const [pushModalOpen, setPushModalOpen] = useState(false);
-  const [diagnosticsModalOpen, setDiagnosticsModalOpen] = useState(false);
-  const [productionModalOpen, setProductionModalOpen] = useState(false);
+  // Dev-only modal state — not accessible in production builds
+  const [pushModalOpen, setPushModalOpen] = useState(__DEV__ ? false : false);
+  const [diagnosticsModalOpen, setDiagnosticsModalOpen] = useState(__DEV__ ? false : false);
+  const [productionModalOpen, setProductionModalOpen] = useState(__DEV__ ? false : false);
 
   // When a push notification of type 'billing' arrives, auto-open billing modal (Rule P-05)
   useEffect(() => {
@@ -795,57 +803,88 @@ export default function SettingsScreen() {
           />
         </Card>
 
-        {/* Tier 8: System Architecture & Diagnostics Card */}
-        <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
-          <View style={styles.settingRow}>
-            <View style={styles.settingTextCol}>
-              <View style={styles.labelWithIcon}>
-                <Cpu size={18} color={theme.colors.primary} />
-                <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
-                  System Architecture & Sharding
+      {/* Dev-only diagnostic cards — hidden in production/preview builds */}
+      {__DEV__ && (
+        <>
+          {/* Tier 7: Push Notification Simulator Card */}
+          <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingTextCol}>
+                <View style={styles.labelWithIcon}>
+                  <Radio size={18} color={theme.colors.primary} />
+                  <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
+                    Push Notification Simulator
+                  </Text>
+                </View>
+                <Text role="bodySmall" color="onSurfaceVariant">
+                  Simulate push events: shift published, swap requested, billing
                 </Text>
               </View>
-              <Text role="bodySmall" color="onSurfaceVariant">
-                CRC-32 sharding, pool limits, read-your-own-writes & k6 metrics
-              </Text>
+              <Badge label="DEV" variant="primary" size="small" />
             </View>
-            <Badge label="TIER 8" variant="primary" size="small" />
-          </View>
 
-          <PrimaryButton
-            label="Open System Diagnostics"
-            variant="secondary"
-            leadingIcon={<Activity size={16} color={theme.colors.primary} />}
-            onPress={() => setDiagnosticsModalOpen(true)}
-            style={{ width: '100%', marginTop: theme.spacing.small }}
-          />
-        </Card>
+            <PrimaryButton
+              label="Open Push Simulator"
+              variant="secondary"
+              leadingIcon={<Bell size={16} color={theme.colors.primary} />}
+              onPress={() => setPushModalOpen(true)}
+              style={{ width: '100%', marginTop: theme.spacing.small }}
+            />
+          </Card>
 
-        {/* Tier 9: Production Readiness & Accessibility Card */}
-        <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
-          <View style={styles.settingRow}>
-            <View style={styles.settingTextCol}>
-              <View style={styles.labelWithIcon}>
-                <Sparkles size={18} color={theme.colors.primary} />
-                <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
-                  Production Readiness & Polish
+          {/* Tier 8: System Architecture & Diagnostics Card */}
+          <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingTextCol}>
+                <View style={styles.labelWithIcon}>
+                  <Cpu size={18} color={theme.colors.primary} />
+                  <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
+                    System Architecture & Sharding
+                  </Text>
+                </View>
+                <Text role="bodySmall" color="onSurfaceVariant">
+                  CRC-32 sharding, pool limits, read-your-own-writes & k6 metrics
                 </Text>
               </View>
-              <Text role="bodySmall" color="onSurfaceVariant">
-                WCAG AAA contrast, TalkBack gate, 8-threat security audit & store billing
-              </Text>
+              <Badge label="DEV" variant="primary" size="small" />
             </View>
-            <Badge label="PHASE 9" variant="primary" size="small" />
-          </View>
 
-          <PrimaryButton
-            label="Open Production Readiness & Accessibility"
-            variant="secondary"
-            leadingIcon={<ShieldCheck size={16} color={theme.colors.primary} />}
-            onPress={() => setProductionModalOpen(true)}
-            style={{ width: '100%', marginTop: theme.spacing.small }}
-          />
-        </Card>
+            <PrimaryButton
+              label="Open System Diagnostics"
+              variant="secondary"
+              leadingIcon={<Activity size={16} color={theme.colors.primary} />}
+              onPress={() => setDiagnosticsModalOpen(true)}
+              style={{ width: '100%', marginTop: theme.spacing.small }}
+            />
+          </Card>
+
+          {/* Tier 9: Production Readiness & Accessibility Card */}
+          <Card variant="outlined" style={[styles.settingsCard, { marginTop: theme.spacing.medium }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingTextCol}>
+                <View style={styles.labelWithIcon}>
+                  <Sparkles size={18} color={theme.colors.primary} />
+                  <Text role="labelLarge" color="onSurface" style={styles.settingTitle}>
+                    Production Readiness & Polish
+                  </Text>
+                </View>
+                <Text role="bodySmall" color="onSurfaceVariant">
+                  WCAG AAA contrast, TalkBack gate, 8-threat security audit & store billing
+                </Text>
+              </View>
+              <Badge label="DEV" variant="primary" size="small" />
+            </View>
+
+            <PrimaryButton
+              label="Open Production Readiness & Accessibility"
+              variant="secondary"
+              leadingIcon={<ShieldCheck size={16} color={theme.colors.primary} />}
+              onPress={() => setProductionModalOpen(true)}
+              style={{ width: '100%', marginTop: theme.spacing.small }}
+            />
+          </Card>
+        </>
+      )}
       </View>
 
       {/* 5. Appearance Theme Switcher */}
@@ -1001,21 +1040,28 @@ export default function SettingsScreen() {
         visible={joinTeamModalOpen}
         onClose={() => setJoinTeamModalOpen(false)}
       />
-      <PushNotificationSimulatorModal
-        visible={pushModalOpen}
-        onClose={() => setPushModalOpen(false)}
-        activeTeamId={teamId}
-      />
-      <SystemDiagnosticsModal
-        visible={diagnosticsModalOpen}
-        onClose={() => setDiagnosticsModalOpen(false)}
-        teamId={teamId}
-        teamName={activeTeam?.name ?? 'Team'}
-      />
-      <ProductionReadinessModal
-        visible={productionModalOpen}
-        onClose={() => setProductionModalOpen(false)}
-      />
+      {/* Dev-only modals — excluded from production/preview builds */}
+      {__DEV__ && PushNotificationSimulatorModal && (
+        <PushNotificationSimulatorModal
+          visible={pushModalOpen}
+          onClose={() => setPushModalOpen(false)}
+          activeTeamId={teamId}
+        />
+      )}
+      {__DEV__ && SystemDiagnosticsModal && (
+        <SystemDiagnosticsModal
+          visible={diagnosticsModalOpen}
+          onClose={() => setDiagnosticsModalOpen(false)}
+          teamId={teamId}
+          teamName={activeTeam?.name ?? 'Team'}
+        />
+      )}
+      {__DEV__ && ProductionReadinessModal && (
+        <ProductionReadinessModal
+          visible={productionModalOpen}
+          onClose={() => setProductionModalOpen(false)}
+        />
+      )}
     </ScrollView>
   );
 }

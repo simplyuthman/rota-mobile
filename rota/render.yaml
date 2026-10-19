@@ -1,0 +1,131 @@
+# ==============================================================================
+# Rota — Render.com Deployment Configuration
+# ==============================================================================
+# This file defines all services for a free Render deployment:
+#   - rota-api       Web Service (Fastify + Node.js)
+#   - rota-worker    Background Worker (BullMQ notifications)
+#
+# Usage:
+#   1. Push this repo to GitHub
+#   2. Go to https://render.com → New → Blueprint
+#   3. Connect your GitHub repo — Render reads this file automatically
+#   4. Set the environment variables listed below in the Render dashboard
+# ==============================================================================
+
+services:
+  # ── API Web Service ─────────────────────────────────────────────────────────
+  - type: web
+    name: rota-api
+    runtime: node
+    plan: free
+    region: oregon
+
+    # Build
+    buildCommand: |
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm build:packages &&
+      pnpm --filter @rota/api build
+
+    # Release (runs before start — runs migrations)
+    preDeployCommand: node services/api/scripts/migrate.js
+
+    # Start
+    startCommand: node services/api/dist/server.js
+
+    healthCheckPath: /health/live
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000            # Render assigns port 10000 for web services
+
+      # PostgreSQL — set these after provisioning in Render dashboard
+      - key: DATABASE_CONTROL_URL
+        sync: false
+      - key: DATABASE_CONTROL_READ_URL
+        sync: false
+      - key: DATABASE_SHARD_0_URL
+        sync: false
+      - key: DATABASE_SHARD_0_READ_URL
+        sync: false
+      - key: DATABASE_SHARD_1_URL
+        sync: false
+      - key: DATABASE_SHARD_1_READ_URL
+        sync: false
+
+      # Redis — Upstash free tier (set in dashboard)
+      - key: REDIS_CACHE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+
+      # Auth
+      - key: JWT_SECRET
+        generateValue: true    # Render auto-generates a secure random value
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+
+      # Flutterwave (test mode)
+      - key: FLUTTERWAVE_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_WEBHOOK_SECRET
+        sync: false
+
+      # Email (Resend)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: noreply@yourdomain.com
+
+      # Sentry
+      - key: SENTRY_DSN
+        sync: false
+
+      # CORS — set to your Cloudflare Pages domain
+      - key: CORS_ORIGINS
+        value: https://rota.pages.dev
+
+  # ── BullMQ Notification Worker ──────────────────────────────────────────────
+  - type: worker
+    name: rota-worker
+    runtime: node
+    plan: free
+    region: oregon
+
+    buildCommand: |
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm build:packages &&
+      pnpm --filter @rota/api build
+
+    startCommand: node services/api/dist/jobs/index.js
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_CONTROL_URL
+        sync: false
+      - key: DATABASE_CONTROL_READ_URL
+        sync: false
+      - key: DATABASE_SHARD_0_URL
+        sync: false
+      - key: DATABASE_SHARD_0_READ_URL
+        sync: false
+      - key: DATABASE_SHARD_1_URL
+        sync: false
+      - key: DATABASE_SHARD_1_READ_URL
+        sync: false
+      - key: REDIS_CACHE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: noreply@yourdomain.com
+      - key: SENTRY_DSN
+        sync: false

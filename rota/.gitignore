@@ -1,26 +1,94 @@
-# Dependencies
+# ==============================================================================
+# Rota — .gitignore
+# Rule S-01: Never commit secrets, tokens, or real env values.
+# ==============================================================================
+
+# ── Dependencies ───────────────────────────────────────────────────────────────
 node_modules/
 .pnpm-store/
 
-# Environment files — Never commit real values (Rule S-01)
+# ── Environment & Secrets (NEVER commit — Rule S-01) ──────────────────────────
 .env
 .env.local
 .env.*.local
 *.local
 
-# Build outputs
+# ── Build Outputs ──────────────────────────────────────────────────────────────
 dist/
 build/
-.expo/
 *.tsbuildinfo
+out/
 
-# Logs & Sentry
+# ── Expo / React Native ────────────────────────────────────────────────────────
+.expo/
+expo-env.d.ts
+*.jsbundle
+android/
+ios/
+# EAS build artifacts (download from expo.dev, never store in repo)
+*.apk
+*.aab
+*.ipa
+
+# ── Credentials & Certificates (NEVER commit) ─────────────────────────────────
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+credentials.json
+google-services.json
+GoogleService-Info.plist
+*service-account*.json
+google-play-service-account.json
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.sentry-native/
 
-# OS metadata
+# ── Sentry ─────────────────────────────────────────────────────────────────────
+.sentry-native/
+.sentry-auth-token
+
+# ── OS Metadata ────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# ── Editor & IDE ───────────────────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Test & Coverage ────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+test-results/
+
+# ── k6 Load Test Tokens ────────────────────────────────────────────────────────
+# tokens.json holds signed JWTs for load testing — never commit real tokens
+load-tests/tokens.json
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker/init.sql.bak
+
+# ── PM2 Runtime ────────────────────────────────────────────────────────────────
+.pm2/
+
+# ── Temporary / Scratch ────────────────────────────────────────────────────────
+tmp/
+temp/
+scratch/
