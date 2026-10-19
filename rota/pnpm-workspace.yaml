@@ -9,7 +9,7 @@ allowBuilds:
   '@node-rs/argon2': true
   esbuild: true
   dtrace-provider: true
-  msgpackr-extract: set this to true or false
+  msgpackr-extract: true
 
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.30 || 57.0.31'
