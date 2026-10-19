@@ -83,7 +83,11 @@ async function applyMigration(client, filename, sql) {
 }
 
 async function runMigrations(connectionString, dbLabel, migrationsDir) {
-  const client = new pg.Client({ connectionString });
+  const isCloud = connectionString.includes('sslmode=') || connectionString.includes('neon.tech');
+  const client = new pg.Client({
+    connectionString,
+    ssl: isCloud ? { rejectUnauthorized: false } : undefined,
+  });
   await client.connect();
 
   try {

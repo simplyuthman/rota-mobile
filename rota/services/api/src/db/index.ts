@@ -100,8 +100,10 @@ export const POOL_CONFIG: PoolConfigMap = {
 };
 
 function makePool(connectionString: string, cfg: PoolConfigOptions): pg.Pool {
+  const isCloud = connectionString.includes('sslmode=') || connectionString.includes('neon.tech');
   return new pg.Pool({
     connectionString,
+    ssl: isCloud ? { rejectUnauthorized: false } : undefined,
     max: cfg.max,
     idleTimeoutMillis: cfg.idleTimeoutMillis,
     connectionTimeoutMillis: cfg.connectionTimeoutMillis,

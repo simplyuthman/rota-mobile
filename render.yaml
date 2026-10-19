@@ -23,19 +23,21 @@ services:
     region: oregon
     rootDir: rota
 
-    # Build: enable corepack, install dependencies, compile packages and API
+    # Build: install pnpm, install dependencies, compile packages and API
     buildCommand: |
-      corepack enable &&
+      npm install -g pnpm &&
       pnpm install --frozen-lockfile &&
       pnpm build:packages &&
       pnpm --filter @rota/api build
 
-    # Start: runs database migrations, then starts API and BullMQ worker via PM2
-    startCommand: node services/api/scripts/migrate.js && npx pm2-runtime start ecosystem.config.cjs
+    # Start: runs database migrations, then launches Fastify API
+    startCommand: node services/api/scripts/migrate.js && node services/api/dist/server.js
 
     healthCheckPath: /health/live
 
     envVars:
+      - key: NODE_VERSION
+        value: 24.18.0
       - key: NODE_ENV
         value: production
       - key: HOST

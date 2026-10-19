@@ -22,18 +22,19 @@ services:
 
     # Build
     buildCommand: |
-      corepack enable &&
+      npm install -g pnpm &&
       pnpm install --frozen-lockfile &&
       pnpm build:packages &&
       pnpm --filter @rota/api build
 
-    # Start
-    # Runs database migrations, then starts Fastify API and BullMQ worker via PM2 in one free container.
-    startCommand: node services/api/scripts/migrate.js && npx pm2-runtime start ecosystem.config.cjs
+    # Start: runs database migrations, then launches Fastify API
+    startCommand: node services/api/scripts/migrate.js && node services/api/dist/server.js
 
     healthCheckPath: /health/live
 
     envVars:
+      - key: NODE_VERSION
+        value: 24.18.0
       - key: NODE_ENV
         value: production
       - key: HOST
