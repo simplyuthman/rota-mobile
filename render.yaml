@@ -1,0 +1,102 @@
+# ==============================================================================
+# Rota — Render.com Deployment Configuration (Root Blueprint)
+# ==============================================================================
+# This blueprint defines the deployment on Render:
+#   - rota-api       Web Service (Fastify API + BullMQ Worker via PM2)
+#
+# Root Directory: rota
+# Usage:
+#   1. Push this repository to GitHub
+#   2. Go to https://dashboard.render.com → New + → Blueprint
+#   3. Connect your GitHub repository — Render automatically detects this file
+#   4. Fill in the environment variables in the Render dashboard
+# ==============================================================================
+
+services:
+  # ── API Web Service (Free Tier) ─────────────────────────────────────────────
+  # Note: Uses PM2 to run both Fastify API and the BullMQ Worker inside a single
+  # free-tier container without needing a separate paid worker service.
+  - type: web
+    name: rota-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: rota
+
+    # Build: enable corepack, install dependencies, compile packages and API
+    buildCommand: |
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm build:packages &&
+      pnpm --filter @rota/api build
+
+    # Pre-Deploy: automatically runs database migrations before serving traffic
+    preDeployCommand: node services/api/scripts/migrate.js
+
+    # Start: runs both API and BullMQ worker via PM2 ecosystem
+    # (Or use "node services/api/dist/server.js" if running API only)
+    startCommand: npx pm2-runtime start ecosystem.config.cjs
+
+    healthCheckPath: /health/live
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+
+      # PostgreSQL — Control Plane (from Neon.tech)
+      - key: DATABASE_CONTROL_URL
+        sync: false
+      - key: DATABASE_CONTROL_READ_URL
+        sync: false
+
+      # PostgreSQL — Shard 0 (from Neon.tech)
+      - key: DATABASE_SHARD_0_URL
+        sync: false
+      - key: DATABASE_SHARD_0_READ_URL
+        sync: false
+
+      # PostgreSQL — Shard 1 (from Neon.tech)
+      - key: DATABASE_SHARD_1_URL
+        sync: false
+      - key: DATABASE_SHARD_1_READ_URL
+        sync: false
+
+      # Redis — Cache & Queue (from Upstash)
+      - key: REDIS_CACHE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+
+      # Auth — Auto-generated cryptographic secrets
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+
+      # Payments — Flutterwave (test mode)
+      - key: FLUTTERWAVE_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_WEBHOOK_SECRET
+        sync: false
+
+      # Email — Resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: noreply@yourdomain.com
+
+      # Push Notifications — Expo Access Token
+      - key: EXPO_ACCESS_TOKEN
+        sync: false
+
+      # Error Monitoring — Sentry
+      - key: SENTRY_DSN
+        sync: false
+
+      # CORS — Cloudflare Pages invite domain
+      - key: CORS_ORIGINS
+        value: https://rota.pages.dev

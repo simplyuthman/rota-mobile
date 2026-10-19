@@ -31,7 +31,9 @@ services:
     preDeployCommand: node services/api/scripts/migrate.js
 
     # Start
-    startCommand: node services/api/dist/server.js
+    # Uses PM2 to run both Fastify API and BullMQ worker in one free container.
+    # To run API only, use: node services/api/dist/server.js
+    startCommand: npx pm2-runtime start ecosystem.config.cjs
 
     healthCheckPath: /health/live
 
@@ -89,12 +91,15 @@ services:
       - key: CORS_ORIGINS
         value: https://rota.pages.dev
 
-  # ── BullMQ Notification Worker ──────────────────────────────────────────────
-  - type: worker
-    name: rota-worker
-    runtime: node
-    plan: free
-    region: oregon
+  # ── BullMQ Notification Worker (Optional Standalone) ────────────────────────
+  # NOTE: Render does not offer a free tier for standalone workers.
+  # On Render's free tier, the worker runs inside rota-api via PM2.
+  # If you want a dedicated standalone worker on a paid plan ($7/mo), uncomment below:
+  # - type: worker
+  #   name: rota-worker
+  #   runtime: node
+  #   plan: starter
+  #   region: oregon
 
     buildCommand: |
       corepack enable &&
