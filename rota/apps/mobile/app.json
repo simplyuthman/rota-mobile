@@ -3,6 +3,10 @@
     "name": "Rota",
     "slug": "rota-mobile",
     "version": "1.0.0",
+    "owner": "duniyadev",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -46,6 +50,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ca1bf681-5f15-4b66-b1dd-d40d1e3b672c"
+      },
+      "router": {}
     }
   }
 }

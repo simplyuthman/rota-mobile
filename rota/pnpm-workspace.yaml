@@ -8,6 +8,7 @@ allowBuilds:
   argon2: true
   '@node-rs/argon2': true
   esbuild: true
+  dtrace-provider: true
 
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.30 || 57.0.31'

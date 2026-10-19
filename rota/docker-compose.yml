@@ -28,7 +28,7 @@ services:
       POSTGRES_DB: control_plane
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker:/docker-entrypoint-initdb.d:ro
     ports:
       - '5432:5432'
     healthcheck:
