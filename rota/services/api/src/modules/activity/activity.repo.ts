@@ -176,7 +176,7 @@ export const activityRepo = {
           'endsAt', to_char(s.ends_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
           'locationLabel', s.location_label
         )::jsonb,
-        'team'::activity_visibility,
+        'team',
         COALESCE(
           (SELECT array_agg(sa.membership_id) FROM shift_assignments sa WHERE sa.shift_id = s.id AND sa.status = 'assigned'),
           ARRAY[]::uuid[]

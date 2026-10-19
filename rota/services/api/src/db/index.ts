@@ -122,7 +122,17 @@ export function getControlPlaneDb(): Kysely<ControlPlaneDB> {
   return controlPlane;
 }
 
-export const controlPlaneReadPool = makePool(env.DATABASE_CONTROL_READ_URL, POOL_CONFIG.controlPlaneRead);
+const resolveReadUrl = (readUrl: string, writeUrl: string): string => {
+  if (env.NODE_ENV === 'production' && readUrl.includes('localhost')) {
+    return writeUrl;
+  }
+  return readUrl;
+};
+
+export const controlPlaneReadPool = makePool(
+  resolveReadUrl(env.DATABASE_CONTROL_READ_URL, env.DATABASE_CONTROL_URL),
+  POOL_CONFIG.controlPlaneRead
+);
 export const controlPlaneRead = new Kysely<ControlPlaneDB>({
   dialect: new PostgresDialect({ pool: controlPlaneReadPool }),
 });
@@ -134,7 +144,10 @@ export const shard0 = new Kysely<ShardDB>({
   dialect: new PostgresDialect({ pool: shard0Pool }),
 });
 
-export const shard0ReadPool = makePool(env.DATABASE_SHARD_0_READ_URL, POOL_CONFIG.shard0Read);
+export const shard0ReadPool = makePool(
+  resolveReadUrl(env.DATABASE_SHARD_0_READ_URL, env.DATABASE_SHARD_0_URL),
+  POOL_CONFIG.shard0Read
+);
 export const shard0Read = new Kysely<ShardDB>({
   dialect: new PostgresDialect({ pool: shard0ReadPool }),
 });
@@ -144,7 +157,10 @@ export const shard1 = new Kysely<ShardDB>({
   dialect: new PostgresDialect({ pool: shard1Pool }),
 });
 
-export const shard1ReadPool = makePool(env.DATABASE_SHARD_1_READ_URL, POOL_CONFIG.shard1Read);
+export const shard1ReadPool = makePool(
+  resolveReadUrl(env.DATABASE_SHARD_1_READ_URL, env.DATABASE_SHARD_1_URL),
+  POOL_CONFIG.shard1Read
+);
 export const shard1Read = new Kysely<ShardDB>({
   dialect: new PostgresDialect({ pool: shard1ReadPool }),
 });
