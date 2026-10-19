@@ -1,6 +1,6 @@
 # Feed Query Plan Evidence (10,000 Rows)
 
-**Date:** 2026-10-19T12:21:45.198Z
+**Date:** 2026-10-19T17:55:30.386Z
 **Dataset:** 10,000 rows in shard database table `activity_events`
 **Index Tested:** `activity_team_cursor_idx (team_id, created_at DESC, id DESC)`
 
@@ -9,22 +9,18 @@
 ## 1. Owner View — Before Index (Sequential Scan)
 
 ```
-Limit  (cost=5625.66..5625.67 rows=4 width=166) (actual time=145.395..154.278 rows=20 loops=1)
-  Buffers: shared hit=304 read=3209 dirtied=2
-  ->  Sort  (cost=5625.66..5625.67 rows=4 width=166) (actual time=145.393..154.273 rows=20 loops=1)
+Limit  (cost=5210.71..5210.72 rows=4 width=167) (actual time=2118.303..2118.308 rows=20 loops=1)
+  Buffers: shared hit=2959 dirtied=1
+  ->  Sort  (cost=5210.71..5210.72 rows=4 width=167) (actual time=2118.301..2118.304 rows=20 loops=1)
         Sort Key: created_at DESC, id DESC
-        Sort Method: top-N heapsort  Memory: 34kB
-        Buffers: shared hit=304 read=3209 dirtied=2
-        ->  Gather  (cost=1000.00..5625.62 rows=4 width=166) (actual time=126.485..149.312 rows=10000 loops=1)
-              Workers Planned: 2
-              Workers Launched: 2
-              Buffers: shared hit=298 read=3209 dirtied=2
-              ->  Parallel Seq Scan on activity_events  (cost=0.00..4625.22 rows=2 width=166) (actual time=94.320..100.371 rows=3333 loops=3)
-                    Filter: ((team_id = '39c5ec2b-d4a7-4d26-bb81-152b89d43517'::uuid) AND ((visibility = 'team'::text) OR (visibility = 'managers'::text) OR (visibility = 'owner'::text) OR (visibility = 'participants'::text)))
-                    Rows Removed by Filter: 36768
-                    Buffers: shared hit=298 read=3209 dirtied=2
-Planning Time: 0.171 ms
-Execution Time: 154.459 ms
+        Sort Method: top-N heapsort  Memory: 35kB
+        Buffers: shared hit=2959 dirtied=1
+        ->  Seq Scan on activity_events  (cost=0.00..5210.67 rows=4 width=167) (actual time=2082.771..2101.451 rows=10000 loops=1)
+              Filter: ((team_id = '6f1b531a-ae84-4b78-b495-5f83ca6874eb'::uuid) AND ((visibility = 'team'::text) OR (visibility = 'managers'::text) OR (visibility = 'owner'::text) OR (visibility = 'participants'::text)))
+              Rows Removed by Filter: 90326
+              Buffers: shared hit=2953 dirtied=1
+Planning Time: 0.206 ms
+Execution Time: 2118.407 ms
 ```
 
 ---
@@ -32,22 +28,14 @@ Execution Time: 154.459 ms
 ## 2. Owner View — After Index (Index Scan)
 
 ```
-Limit  (cost=27.91..27.92 rows=4 width=166) (actual time=21.878..21.884 rows=20 loops=1)
-  Buffers: shared hit=424
-  ->  Sort  (cost=27.91..27.92 rows=4 width=166) (actual time=21.876..21.879 rows=20 loops=1)
-        Sort Key: created_at DESC, id DESC
-        Sort Method: top-N heapsort  Memory: 35kB
-        Buffers: shared hit=424
-        ->  Bitmap Heap Scan on activity_events  (cost=4.46..27.87 rows=4 width=166) (actual time=1.175..10.079 rows=10000 loops=1)
-              Recheck Cond: (team_id = '39c5ec2b-d4a7-4d26-bb81-152b89d43517'::uuid)
-              Filter: ((visibility = 'team'::text) OR (visibility = 'managers'::text) OR (visibility = 'owner'::text) OR (visibility = 'participants'::text))
-              Heap Blocks: exact=295
-              Buffers: shared hit=424
-              ->  Bitmap Index Scan on activity_team_cursor_idx  (cost=0.00..4.46 rows=6 width=0) (actual time=0.981..0.982 rows=10000 loops=1)
-                    Index Cond: (team_id = '39c5ec2b-d4a7-4d26-bb81-152b89d43517'::uuid)
-                    Buffers: shared hit=129
-Planning Time: 0.271 ms
-Execution Time: 22.689 ms
+Limit  (cost=0.42..23.30 rows=4 width=167) (actual time=0.074..0.094 rows=20 loops=1)
+  Buffers: shared hit=4
+  ->  Index Scan using activity_team_cursor_idx on activity_events  (cost=0.42..23.30 rows=4 width=167) (actual time=0.073..0.090 rows=20 loops=1)
+        Index Cond: (team_id = '6f1b531a-ae84-4b78-b495-5f83ca6874eb'::uuid)
+        Filter: ((visibility = 'team'::text) OR (visibility = 'managers'::text) OR (visibility = 'owner'::text) OR (visibility = 'participants'::text))
+        Buffers: shared hit=4
+Planning Time: 0.256 ms
+Execution Time: 0.148 ms
 ```
 
 ---
@@ -55,23 +43,15 @@ Execution Time: 22.689 ms
 ## 3. Staff View — After Index with Visibility Predicate
 
 ```
-Limit  (cost=27.91..27.92 rows=1 width=166) (actual time=14.270..14.276 rows=20 loops=1)
-  Buffers: shared hit=424
-  ->  Sort  (cost=27.91..27.92 rows=1 width=166) (actual time=14.268..14.271 rows=20 loops=1)
-        Sort Key: created_at DESC, id DESC
-        Sort Method: top-N heapsort  Memory: 35kB
-        Buffers: shared hit=424
-        ->  Bitmap Heap Scan on activity_events  (cost=4.46..27.90 rows=1 width=166) (actual time=3.756..11.130 rows=5000 loops=1)
-              Recheck Cond: (team_id = '39c5ec2b-d4a7-4d26-bb81-152b89d43517'::uuid)
-              Filter: ((visibility = 'team'::text) OR ((visibility = 'participants'::text) AND ('833f1f47-396e-486f-abf1-72228eb1cf4f'::uuid = ANY (participant_membership_ids))))
-              Rows Removed by Filter: 5000
-              Heap Blocks: exact=295
-              Buffers: shared hit=424
-              ->  Bitmap Index Scan on activity_team_cursor_idx  (cost=0.00..4.46 rows=6 width=0) (actual time=3.688..3.689 rows=10000 loops=1)
-                    Index Cond: (team_id = '39c5ec2b-d4a7-4d26-bb81-152b89d43517'::uuid)
-                    Buffers: shared hit=129
-Planning Time: 0.159 ms
-Execution Time: 14.424 ms
+Limit  (cost=0.42..23.33 rows=1 width=167) (actual time=0.042..0.067 rows=20 loops=1)
+  Buffers: shared hit=5
+  ->  Index Scan using activity_team_cursor_idx on activity_events  (cost=0.42..23.33 rows=1 width=167) (actual time=0.041..0.064 rows=20 loops=1)
+        Index Cond: (team_id = '6f1b531a-ae84-4b78-b495-5f83ca6874eb'::uuid)
+        Filter: ((visibility = 'team'::text) OR ((visibility = 'participants'::text) AND ('79a8e30e-febc-43ac-b91e-2e1f71e05c7c'::uuid = ANY (participant_membership_ids))))
+        Rows Removed by Filter: 18
+        Buffers: shared hit=5
+Planning Time: 0.169 ms
+Execution Time: 0.129 ms
 ```
 
 ---
