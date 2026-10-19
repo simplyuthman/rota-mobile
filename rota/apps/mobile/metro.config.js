@@ -16,10 +16,10 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
-// 3. Direct alias for workspace packages so Metro bundles from src
+// 3. Direct alias for workspace packages
 config.resolver.extraNodeModules = {
-  '@rota/contracts': path.resolve(monorepoRoot, 'packages/contracts/src'),
-  '@rota/config': path.resolve(monorepoRoot, 'packages/config/src'),
+  '@rota/contracts': path.resolve(monorepoRoot, 'packages/contracts'),
+  '@rota/config': path.resolve(monorepoRoot, 'packages/config'),
 };
 
 module.exports = config;
