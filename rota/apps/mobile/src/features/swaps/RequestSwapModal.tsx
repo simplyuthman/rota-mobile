@@ -79,7 +79,7 @@ export function RequestSwapModal({
     } catch (err: unknown) {
       const code = getErrorCode(err);
       if (code === 'CONFLICT' || code === 'INVALID_SWAP') {
-        setErrorMessage('A swap request is already pending for this shift (Rule A-10).');
+        setErrorMessage('A swap request is already pending for this shift.');
       } else {
         setErrorMessage(getErrorMessage(err, 'Failed to submit swap request.'));
       }
@@ -124,7 +124,7 @@ export function RequestSwapModal({
                   Request Shift Swap
                 </Text>
                 <Text role="bodySmall" color="onSurfaceVariant">
-                  Direct handoff to a colleague (Rule A-10)
+                  Direct handoff to a colleague
                 </Text>
               </View>
             </View>

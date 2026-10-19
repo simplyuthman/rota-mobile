@@ -327,7 +327,7 @@ export function SystemDiagnosticsModal({
             <View style={styles.cardHeader}>
               <Zap size={18} color={theme.colors.primary} />
               <Text role="labelLarge" color="onSurface" style={{ marginLeft: theme.spacing.small }}>
-                Multi-Tier Redis Caching (Rule D-03, D-04)
+                Multi-Tier Redis Caching
               </Text>
             </View>
 
@@ -404,7 +404,7 @@ export function SystemDiagnosticsModal({
             <View style={styles.cardHeader}>
               <Gauge size={18} color={theme.colors.primary} />
               <Text role="labelLarge" color="onSurface" style={{ marginLeft: theme.spacing.small }}>
-                Rule S-08 Sliding-Window Rate Limits
+                Sliding-Window Rate Limits
               </Text>
             </View>
 

@@ -149,7 +149,7 @@ export default function SettingsScreen() {
 
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Connect to change member roles (Rule P-03).');
+      Alert.alert('Offline Mode', 'Connect to change member roles.');
       return;
     }
 
@@ -187,7 +187,7 @@ export default function SettingsScreen() {
   const handleToggleQuietHours = (value: boolean) => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Connect to change quiet hours (Rule P-03).');
+      Alert.alert('Offline Mode', 'Connect to change quiet hours.');
       return;
     }
 
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
   const handleSelectQuietHoursPreset = (start: string, end: string) => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Connect to change quiet hours (Rule P-03).');
+      Alert.alert('Offline Mode', 'Connect to change quiet hours.');
       return;
     }
 
@@ -230,7 +230,7 @@ export default function SettingsScreen() {
 
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Connect to change notification preferences (Rule P-03).');
+      Alert.alert('Offline Mode', 'Connect to change notification preferences.');
       return;
     }
 
@@ -252,7 +252,7 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
-      'Are you sure you want to sign out? Your shift cache will be cleared (Rule P-01) and push device unregistered (Rule P-04).',
+      'Are you sure you want to sign out? Your shift cache will be cleared and push device unregistered.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -330,7 +330,7 @@ export default function SettingsScreen() {
               accessibilityLabel="Invite new member"
               onPress={() => {
                 if (!isOnline) {
-                  Alert.alert('Offline Mode', 'Connect to invite members (Rule P-03).');
+                  Alert.alert('Offline Mode', 'Connect to invite members.');
                   return;
                 }
                 setInviteModalOpen(true);
@@ -567,7 +567,7 @@ export default function SettingsScreen() {
                 leadingIcon={<CreditCard size={16} color={theme.colors.primary} />}
                 onPress={() => {
                   if (!isOnline) {
-                    Alert.alert('Offline Mode', 'Connect to manage billing (Rule P-03).');
+                    Alert.alert('Offline Mode', 'Connect to manage billing.');
                     return;
                   }
                   setBillingModalOpen(true);
@@ -599,7 +599,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <Text role="bodySmall" color="onSurfaceVariant">
-                Initialized from your device (Rule P-07)
+                Initialized from your device
               </Text>
             </View>
             <Badge
@@ -668,7 +668,7 @@ export default function SettingsScreen() {
                 })}
               </View>
               <Text role="bodySmall" color="onSurfaceVariant" style={styles.quietHoursHint}>
-                Security alerts (new sign-ins, password changes) bypass quiet hours immediately (Rule P-06).
+                Security alerts (new sign-ins, password changes) bypass quiet hours immediately.
               </Text>
             </View>
           ) : null}
@@ -784,7 +784,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <Text role="bodySmall" color="onSurfaceVariant">
-                {pushDeviceToken ? 'Device registered on FCM / Expo (Rule P-04)' : 'Device token active on server'}
+                {pushDeviceToken ? 'Device registered on FCM / Expo' : 'Device token active on server'}
               </Text>
             </View>
             <Badge

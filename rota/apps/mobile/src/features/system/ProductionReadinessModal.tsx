@@ -64,58 +64,58 @@ const CONTRAST_PAIRS = [
 const SECURITY_THREATS = [
   {
     id: 'T1',
-    name: 'Cross-Team Data Leakage (A-02)',
+    name: 'Cross-Team Data Leakage',
     mitigation: 'Strict database tenant isolation. Queries enforce WHERE team_id = :id; shards 0 & 1 have zero cross-database foreign keys.',
-    rule: 'Rule A-02',
+    rule: 'Data Isolation',
     test: 'tier2-evidence.test.ts',
   },
   {
     id: 'T2',
-    name: 'Privilege Escalation & Staff Visibility (A-01, A-07)',
+    name: 'Privilege Escalation & Staff Visibility',
     mitigation: 'Centralized server authorization. Staff cannot view shift notes, draft shifts, or billing records. Owner role is immutable.',
-    rule: 'Rules A-01, A-04, A-07',
+    rule: 'Authorization',
     test: 'tier3-evidence.test.ts',
   },
   {
     id: 'T3',
-    name: 'Stolen Access / Refresh Tokens (S-02, S-03, S-04)',
+    name: 'Stolen Access / Refresh Tokens',
     mitigation: '15-min JWTs with sid claim. Revocation writes sid to Redis with 15-min TTL. Refresh rotation; hardware Expo SecureStore only.',
-    rule: 'Rules S-02, S-03, S-04',
+    rule: 'Token Security',
     test: 'tier2-evidence.test.ts',
   },
   {
     id: 'T4',
-    name: 'Reset / Magic Link Token Replay (S-06, S-07, S-09)',
+    name: 'Reset / Magic Link Token Replay',
     mitigation: 'Tokens stored SHA-256 hashed, single-use, timing-safe validation. Uniform response on non-existent accounts prevents enumeration.',
-    rule: 'Rules S-06, S-07, S-09',
+    rule: 'Token Validation',
     test: 'tier2-evidence.test.ts',
   },
   {
     id: 'T5',
-    name: 'Webhook Spoofing & Duplicate Deliveries (M-08, M-09, M-10)',
+    name: 'Webhook Spoofing & Duplicate Deliveries',
     mitigation: 'Flutterwave HMAC signature verified before reading payload. Global payment_webhook_events deduplication in control plane.',
-    rule: 'Rules M-08, M-09, M-10',
+    rule: 'Webhook Verification',
     test: 'tier7-evidence.test.ts',
   },
   {
     id: 'T6',
-    name: 'Secrets in Bundles & Logs (S-01, O-01, O-03)',
+    name: 'Secrets in Bundles & Logs',
     mitigation: 'Zero private keys in mobile bundle. Automatic Pino & Sentry scrubbing of tokens, passwords, and shift notes before dispatch.',
-    rule: 'Rules S-01, O-01, O-03',
+    rule: 'Secret Scrubbing',
     test: 'tier9-evidence.test.ts',
   },
   {
     id: 'T7',
-    name: 'Brute Force & Rate Limit Abuse (S-08)',
+    name: 'Brute Force & Rate Limit Abuse',
     mitigation: 'Sliding-window Redis rate limits per account & IP (Login 5/min, Password Reset 3/hr, Invites 20/hr, Checkout 5/hr, Feed 60/min).',
-    rule: 'Rule S-08',
+    rule: 'Rate Limiting',
     test: 'tier8-evidence.test.ts',
   },
   {
     id: 'T8',
-    name: 'Shared-Phone Cache & Notification Leaks (P-01, P-02, P-05)',
+    name: 'Shared-Phone Cache & Notification Leaks',
     mitigation: 'Offline cache stores published shifts only, notes stripped. Cache wiped on logout. Push payloads carry only IDs; tokens reassigned.',
-    rule: 'Rules P-01, P-02, P-05',
+    rule: 'Privacy & Storage',
     test: 'tier6-evidence.test.ts',
   },
 ];
@@ -470,7 +470,7 @@ export function ProductionReadinessModal({ visible, onClose }: ProductionReadine
                 <View style={styles.cardHeader}>
                   <FileText size={18} color={theme.colors.primary} />
                   <Text role="labelLarge" color="onSurface" style={{ marginLeft: theme.spacing.small, fontWeight: '700' }}>
-                    Sentry & Pino Log Scrubbing (Rule O-03)
+                    Sentry & Pino Log Scrubbing
                   </Text>
                 </View>
                 <Text role="bodySmall" color="onSurfaceVariant" style={styles.cardDescription}>

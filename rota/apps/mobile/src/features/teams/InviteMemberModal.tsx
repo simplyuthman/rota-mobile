@@ -136,7 +136,7 @@ export function InviteMemberModal({ visible, onClose, teamId }: InviteMemberModa
                 </Card>
 
                 <Text role="bodySmall" color="onSurfaceVariant" style={styles.expiryNote}>
-                  Expires in 7 days. Once accepted, it consumes 1 purchased seat (Rule A-06).
+                  Expires in 7 days. Once accepted, it consumes 1 purchased seat.
                 </Text>
 
                 <PrimaryButton

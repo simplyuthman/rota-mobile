@@ -156,7 +156,7 @@ export function PushNotificationSimulatorModal({
                 <View style={styles.tokenTitleLeft}>
                   <Smartphone size={16} color={theme.colors.primary} />
                   <Text role="labelMedium" color="onSurface" style={styles.tokenLabel}>
-                    Device Push Registration (Rule P-04)
+                    Device Push Registration
                   </Text>
                 </View>
                 <Badge
@@ -177,7 +177,7 @@ export function PushNotificationSimulatorModal({
 
             {/* Tap-To-Open Route Testing */}
             <Text role="labelLarge" color="onSurface" style={styles.sectionHeader}>
-              TEST TAP-TO-OPEN ROUTING (RULE P-05)
+              TEST TAP-TO-OPEN ROUTING
             </Text>
             <Text role="bodySmall" color="onSurfaceVariant" style={styles.sectionSub}>
               Payloads contain only `{'{type, teamId, entityId}'}`. Tapping instantly routes to the exact target screen:

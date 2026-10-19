@@ -50,8 +50,8 @@ export function OfflineBanner({
           </Text>
           <Text style={[styles.subtitle, isExpired && styles.subtitleExpired]}>
             {isExpired
-              ? 'Offline shifts older than 14 days are hidden for security (Rule P-02).'
-              : 'Viewing cached upcoming shifts. Edits are disabled while offline (Rule P-03).'}
+              ? 'Offline shifts older than 14 days are hidden for security.'
+              : 'Viewing cached upcoming shifts. Edits are disabled while offline.'}
           </Text>
         </View>
       </View>

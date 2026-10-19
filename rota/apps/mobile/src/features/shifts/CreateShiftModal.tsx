@@ -109,7 +109,7 @@ export function CreateShiftModal({ visible, onClose, teamId }: CreateShiftModalP
     } catch (err: unknown) {
       const code = getErrorCode(err);
       if (code === 'OVERLAPPING_SHIFT') {
-        setErrorMessage('Cannot assign member: this assignment overlaps with an existing shift (Rule A-09).');
+        setErrorMessage('Cannot assign member: this assignment overlaps with an existing shift.');
       } else {
         setErrorMessage(getErrorMessage(err, 'Failed to create shift. Please check input.'));
       }
@@ -297,7 +297,7 @@ export function CreateShiftModal({ visible, onClose, teamId }: CreateShiftModalP
             {/* Notes (Hidden from staff per A-07) */}
             <InputField
               label="Manager Notes"
-              placeholder="Private note (hidden from staff per Rule A-07)"
+              placeholder="Private note (hidden from staff)"
               value={notes}
               onChangeText={setNotes}
               multiline

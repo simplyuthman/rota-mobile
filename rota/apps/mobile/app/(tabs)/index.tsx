@@ -195,7 +195,7 @@ export default function ScheduleScreen() {
   const handlePublish = async (shift: ShiftDto | ShiftPublicDto) => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Cannot publish shifts while offline (Rule P-03).');
+      Alert.alert('Offline Mode', 'Cannot publish shifts while offline.');
       return;
     }
     try {
@@ -208,7 +208,7 @@ export default function ScheduleScreen() {
   const handleCancel = (shift: ShiftDto | ShiftPublicDto) => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Cannot cancel shifts while offline (Rule P-03).');
+      Alert.alert('Offline Mode', 'Cannot cancel shifts while offline.');
       return;
     }
     Alert.alert(
@@ -234,7 +234,7 @@ export default function ScheduleScreen() {
   const handleSwapResponse = async (swapId: string, action: 'accept' | 'decline') => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Cannot respond to swaps while offline (Rule P-03).');
+      Alert.alert('Offline Mode', 'Cannot respond to swaps while offline.');
       return;
     }
     try {
@@ -247,7 +247,7 @@ export default function ScheduleScreen() {
   const handleSwapReview = async (swapId: string, action: 'approve' | 'reject') => {
     // Rule P-03: Never write while offline
     if (!isOnline) {
-      Alert.alert('Offline Mode', 'Cannot review swaps while offline (Rule P-03).');
+      Alert.alert('Offline Mode', 'Cannot review swaps while offline.');
       return;
     }
     try {
@@ -354,7 +354,7 @@ export default function ScheduleScreen() {
             accessibilityLabel={
               isSimulatedOffline
                 ? 'Turn offline simulation off'
-                : 'Simulate offline mode (Rule P-02 / P-03 demo)'
+                : 'Simulate offline mode'
             }
             onPress={toggleSimulatedOffline}
             style={[styles.offlineToggleButton, !isOnline && styles.offlineToggleButtonActive]}
@@ -372,7 +372,7 @@ export default function ScheduleScreen() {
               accessibilityLabel="Create new shift"
               onPress={() => {
                 if (!isOnline) {
-                  Alert.alert('Offline Mode', 'Cannot create shifts while offline (Rule P-03).');
+                  Alert.alert('Offline Mode', 'Cannot create shifts while offline.');
                   return;
                 }
                 setCreateShiftModalOpen(true);
@@ -479,7 +479,7 @@ export default function ScheduleScreen() {
               Offline Cache Expired (Older than 14 days)
             </Text>
             <Text role="bodySmall" color="onErrorContainer">
-              Offline shifts older than 14 days are hidden for security reasons (Rule P-02). Connect to the internet to refresh your schedule.
+              Offline shifts older than 14 days are hidden for security reasons. Connect to the internet to refresh your schedule.
             </Text>
           </Card>
         ) : null}
@@ -780,7 +780,7 @@ export default function ScheduleScreen() {
                         leadingIcon={<ArrowRightLeft size={16} color={theme.colors.primary} />}
                         onPress={() => {
                           if (!isOnline) {
-                            Alert.alert('Offline Mode', 'Cannot request swaps while offline (Rule P-03).');
+                            Alert.alert('Offline Mode', 'Cannot request swaps while offline.');
                             return;
                           }
                           setSwapModalShift(shift);
