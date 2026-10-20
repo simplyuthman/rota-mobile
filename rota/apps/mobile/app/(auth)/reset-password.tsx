@@ -103,109 +103,111 @@ export default function ResetPasswordScreen() {
           </Pressable>
         </View>
 
-        {/* Header Branding */}
-        <View style={styles.header}>
-          <Text style={styles.brandTitle}>ROTA</Text>
-          <Text style={styles.heading}>Create new password</Text>
-          <Text style={styles.subheading}>
-            Choose a strong password with at least 8 characters
-          </Text>
-        </View>
-
-        {/* Success State */}
-        {isSuccess ? (
-          <View style={styles.successCard}>
-            <View style={styles.successIconCircle}>
-              <CheckCircle2 size={36} color={theme.colors.primary} />
-            </View>
-            <Text style={styles.successTitle}>Password updated</Text>
-            <Text style={styles.successDescription}>
-              Your password has been reset successfully. All existing sessions have been secured.
-              You can now sign in with your new password.
+        <View style={styles.centerContainer}>
+          {/* Header Branding */}
+          <View style={styles.header}>
+            <Text style={styles.brandTitle}>ROTA</Text>
+            <Text style={styles.heading}>Create new password</Text>
+            <Text style={styles.subheading}>
+              Choose a strong password with at least 8 characters
             </Text>
-
-            <PrimaryButton
-              label="Sign In Now"
-              onPress={() => router.replace('/(auth)/sign-in' as never)}
-              style={styles.actionButton}
-            />
           </View>
-        ) : (
-          /* Form State */
-          <View style={styles.form}>
-            {errorMessage ? (
-              <View style={styles.errorBanner} accessibilityRole="alert">
-                <AlertCircle size={18} color={theme.colors.error} />
-                <Text style={styles.errorBannerText}>{errorMessage}</Text>
-              </View>
-            ) : null}
 
-            {/* Token Input or Token Pre-filled Indicator */}
-            {params.token ? (
-              <View style={styles.tokenVerifiedBadge}>
-                <ShieldCheck size={18} color={theme.colors.primary} />
-                <Text style={styles.tokenVerifiedText}>Reset token attached from link</Text>
+          {/* Success State */}
+          {isSuccess ? (
+            <View style={styles.successCard}>
+              <View style={styles.successIconCircle}>
+                <CheckCircle2 size={36} color={theme.colors.primary} />
               </View>
-            ) : (
+              <Text style={styles.successTitle}>Password updated</Text>
+              <Text style={styles.successDescription}>
+                Your password has been reset successfully. All existing sessions have been secured.
+                You can now sign in with your new password.
+              </Text>
+
+              <PrimaryButton
+                label="Sign In Now"
+                onPress={() => router.replace('/(auth)/sign-in' as never)}
+                style={styles.actionButton}
+              />
+            </View>
+          ) : (
+            /* Form State */
+            <View style={styles.form}>
+              {errorMessage ? (
+                <View style={styles.errorBanner} accessibilityRole="alert">
+                  <AlertCircle size={18} color={theme.colors.error} />
+                  <Text style={styles.errorBannerText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              {/* Token Input or Token Pre-filled Indicator */}
+              {params.token ? (
+                <View style={styles.tokenVerifiedBadge}>
+                  <ShieldCheck size={18} color={theme.colors.primary} />
+                  <Text style={styles.tokenVerifiedText}>Reset token attached from link</Text>
+                </View>
+              ) : (
+                <InputField
+                  label="Reset Token"
+                  placeholder="Paste your reset token"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={token}
+                  onChangeText={(text) => {
+                    setToken(text);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                />
+              )}
+
               <InputField
-                label="Reset Token"
-                placeholder="Paste your reset token"
+                label="New Password"
+                placeholder="Minimum 8 characters"
+                secureTextEntry
                 autoCapitalize="none"
-                autoCorrect={false}
-                value={token}
+                autoComplete="new-password"
+                value={newPassword}
                 onChangeText={(text) => {
-                  setToken(text);
+                  setNewPassword(text);
                   if (errorMessage) setErrorMessage(null);
                 }}
               />
-            )}
 
-            <InputField
-              label="New Password"
-              placeholder="Minimum 8 characters"
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-              value={newPassword}
-              onChangeText={(text) => {
-                setNewPassword(text);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
+              <InputField
+                label="Confirm New Password"
+                placeholder="Re-enter password"
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+              />
 
-            <InputField
-              label="Confirm New Password"
-              placeholder="Re-enter password"
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
+              <PrimaryButton
+                label="Update Password"
+                onPress={handleResetPassword}
+                loading={confirmResetMutation.isPending}
+                trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
+                style={styles.actionButton}
+              />
 
-            <PrimaryButton
-              label="Update Password"
-              onPress={handleResetPassword}
-              loading={confirmResetMutation.isPending}
-              trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
-              style={styles.actionButton}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Back to sign in"
-              style={styles.secondaryLink}
-              onPress={() => router.replace('/(auth)/sign-in' as never)}
-            >
-              <Text style={styles.secondaryLinkText}>
-                Cancel and return to <Text style={styles.linkHighlight}>Sign In</Text>
-              </Text>
-            </Pressable>
-          </View>
-        )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Back to sign in"
+                style={styles.signInLink}
+                onPress={() => router.replace('/(auth)/sign-in' as never)}
+              >
+                <Text style={styles.secondaryLinkText}>
+                  Cancel and return to <Text style={styles.linkHighlight}>Sign In</Text>
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -227,6 +229,12 @@ const createStyles = (t: ThemeContextValue) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: t.spacing.medium,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      width: '100%',
+      paddingBottom: t.spacing.large,
     },
     backButton: {
       width: t.touchTarget,
@@ -319,6 +327,13 @@ const createStyles = (t: ThemeContextValue) =>
       color: t.colors.onSurfaceVariant,
       textAlign: 'center',
       lineHeight: 22,
+    },
+    signInLink: {
+      minHeight: t.touchTarget,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: t.spacing.medium,
+      marginTop: -t.spacing.small,
     },
     secondaryLink: {
       minHeight: t.touchTarget,

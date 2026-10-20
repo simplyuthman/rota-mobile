@@ -86,88 +86,90 @@ export default function ForgotPasswordScreen() {
           </Pressable>
         </View>
 
-        {/* Header Branding */}
-        <View style={styles.header}>
-          <Text style={styles.brandTitle}>ROTA</Text>
-          <Text style={styles.heading}>Reset password</Text>
-          <Text style={styles.subheading}>
-            Enter your account email to receive a password reset link
-          </Text>
-        </View>
-
-        {/* Success State */}
-        {isSuccess ? (
-          <View style={styles.successCard}>
-            <View style={styles.successIconCircle}>
-              <CheckCircle2 size={36} color={theme.colors.primary} />
-            </View>
-            <Text style={styles.successTitle}>Check your inbox</Text>
-            <Text style={styles.successDescription}>
-              If an account is registered with{' '}
-              <Text style={styles.boldEmail}>{email.trim()}</Text>, we have sent a password
-              reset link. The link expires in 15 minutes.
+        <View style={styles.centerContainer}>
+          {/* Header Branding */}
+          <View style={styles.header}>
+            <Text style={styles.brandTitle}>ROTA</Text>
+            <Text style={styles.heading}>Reset password</Text>
+            <Text style={styles.subheading}>
+              Enter your account email to receive a password reset link
             </Text>
-
-            <PrimaryButton
-              label="Back to Sign In"
-              onPress={() => router.replace('/(auth)/sign-in' as never)}
-              style={styles.actionButton}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Enter token manually"
-              style={styles.secondaryLink}
-              onPress={() => router.push('/(auth)/reset-password' as never)}
-            >
-              <Text style={styles.secondaryLinkText}>
-                Have a reset token? <Text style={styles.linkHighlight}>Enter token</Text>
-              </Text>
-            </Pressable>
           </View>
-        ) : (
-          /* Form State */
-          <View style={styles.form}>
-            {errorMessage ? (
-              <View style={styles.errorBanner} accessibilityRole="alert">
-                <AlertCircle size={18} color={theme.colors.error} />
-                <Text style={styles.errorBannerText}>{errorMessage}</Text>
+
+          {/* Success State */}
+          {isSuccess ? (
+            <View style={styles.successCard}>
+              <View style={styles.successIconCircle}>
+                <CheckCircle2 size={36} color={theme.colors.primary} />
               </View>
-            ) : null}
-
-            <InputField
-              label="Email address"
-              placeholder="name@company.com"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
-
-            <PrimaryButton
-              label="Send Reset Link"
-              onPress={handleSendReset}
-              loading={requestResetMutation.isPending}
-              trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
-              style={styles.actionButton}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Remember your password? Sign in"
-              style={styles.secondaryLink}
-              onPress={() => router.replace('/(auth)/sign-in' as never)}
-            >
-              <Text style={styles.secondaryLinkText}>
-                Remember your password? <Text style={styles.linkHighlight}>Sign In</Text>
+              <Text style={styles.successTitle}>Check your inbox</Text>
+              <Text style={styles.successDescription}>
+                If an account is registered with{' '}
+                <Text style={styles.boldEmail}>{email.trim()}</Text>, we have sent a password
+                reset link. The link expires in 15 minutes.
               </Text>
-            </Pressable>
-          </View>
-        )}
+
+              <PrimaryButton
+                label="Back to Sign In"
+                onPress={() => router.replace('/(auth)/sign-in' as never)}
+                style={styles.actionButton}
+              />
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Enter token manually"
+                style={styles.secondaryLink}
+                onPress={() => router.push('/(auth)/reset-password' as never)}
+              >
+                <Text style={styles.secondaryLinkText}>
+                  Have a reset token? <Text style={styles.linkHighlight}>Enter token</Text>
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            /* Form State */
+            <View style={styles.form}>
+              {errorMessage ? (
+                <View style={styles.errorBanner} accessibilityRole="alert">
+                  <AlertCircle size={18} color={theme.colors.error} />
+                  <Text style={styles.errorBannerText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <InputField
+                label="Email address"
+                placeholder="name@company.com"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+              />
+
+              <PrimaryButton
+                label="Send Reset Link"
+                onPress={handleSendReset}
+                loading={requestResetMutation.isPending}
+                trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
+                style={styles.actionButton}
+              />
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Remember your password? Sign in"
+                style={styles.signInLink}
+                onPress={() => router.replace('/(auth)/sign-in' as never)}
+              >
+                <Text style={styles.secondaryLinkText}>
+                  Remember your password? <Text style={styles.linkHighlight}>Sign In</Text>
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -189,6 +191,12 @@ const createStyles = (t: ThemeContextValue) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: t.spacing.medium,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      width: '100%',
+      paddingBottom: t.spacing.large,
     },
     backButton: {
       width: t.touchTarget,
@@ -272,6 +280,13 @@ const createStyles = (t: ThemeContextValue) =>
     boldEmail: {
       color: t.colors.onSurface,
       fontWeight: '600',
+    },
+    signInLink: {
+      minHeight: t.touchTarget,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: t.spacing.medium,
+      marginTop: -t.spacing.small,
     },
     secondaryLink: {
       minHeight: t.touchTarget,
