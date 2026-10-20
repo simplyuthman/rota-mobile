@@ -155,22 +155,19 @@ export default function ForgotPasswordScreen() {
               trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
               style={styles.actionButton}
             />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Remember your password? Sign in"
+              style={styles.secondaryLink}
+              onPress={() => router.replace('/(auth)/sign-in' as never)}
+            >
+              <Text style={styles.secondaryLinkText}>
+                Remember your password? <Text style={styles.linkHighlight}>Sign In</Text>
+              </Text>
+            </Pressable>
           </View>
         )}
-
-        {/* Footer Navigation */}
-        <View style={styles.footer}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Remember your password? Sign in"
-            style={styles.secondaryLink}
-            onPress={() => router.replace('/(auth)/sign-in' as never)}
-          >
-            <Text style={styles.secondaryLinkText}>
-              Remember your password? <Text style={styles.linkHighlight}>Sign In</Text>
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -187,7 +184,6 @@ const createStyles = (t: ThemeContextValue) =>
       paddingHorizontal: t.spacing.large,
       paddingTop: Platform.OS === 'android' ? t.spacing.extraLarge : t.spacing.large,
       paddingBottom: t.spacing.extraLarge,
-      justifyContent: 'space-between',
     },
     topNavRow: {
       flexDirection: 'row',
@@ -276,11 +272,6 @@ const createStyles = (t: ThemeContextValue) =>
     boldEmail: {
       color: t.colors.onSurface,
       fontWeight: '600',
-    },
-    footer: {
-      marginTop: t.spacing.extraLarge,
-      alignItems: 'center',
-      gap: t.spacing.medium,
     },
     secondaryLink: {
       minHeight: t.touchTarget,

@@ -193,22 +193,19 @@ export default function ResetPasswordScreen() {
               trailingIcon={<ArrowRight size={18} color={theme.colors.onPrimary} />}
               style={styles.actionButton}
             />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back to sign in"
+              style={styles.secondaryLink}
+              onPress={() => router.replace('/(auth)/sign-in' as never)}
+            >
+              <Text style={styles.secondaryLinkText}>
+                Cancel and return to <Text style={styles.linkHighlight}>Sign In</Text>
+              </Text>
+            </Pressable>
           </View>
         )}
-
-        {/* Footer Navigation */}
-        <View style={styles.footer}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back to sign in"
-            style={styles.secondaryLink}
-            onPress={() => router.replace('/(auth)/sign-in' as never)}
-          >
-            <Text style={styles.secondaryLinkText}>
-              Cancel and return to <Text style={styles.linkHighlight}>Sign In</Text>
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -225,7 +222,6 @@ const createStyles = (t: ThemeContextValue) =>
       paddingHorizontal: t.spacing.large,
       paddingTop: Platform.OS === 'android' ? t.spacing.extraLarge : t.spacing.large,
       paddingBottom: t.spacing.extraLarge,
-      justifyContent: 'space-between',
     },
     topNavRow: {
       flexDirection: 'row',
@@ -323,11 +319,6 @@ const createStyles = (t: ThemeContextValue) =>
       color: t.colors.onSurfaceVariant,
       textAlign: 'center',
       lineHeight: 22,
-    },
-    footer: {
-      marginTop: t.spacing.extraLarge,
-      alignItems: 'center',
-      gap: t.spacing.medium,
     },
     secondaryLink: {
       minHeight: t.touchTarget,
