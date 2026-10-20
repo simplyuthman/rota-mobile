@@ -184,15 +184,27 @@ export default function SignInScreen() {
             />
 
             {mode === 'password' && (
-              <InputField
-                label="Password"
-                placeholder="••••••••••••"
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="password"
-                value={password}
-                onChangeText={setPassword}
-              />
+              <>
+                <InputField
+                  label="Password"
+                  placeholder="••••••••••••"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <View style={styles.forgotPasswordRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Forgot password? Reset your password"
+                    style={styles.forgotPasswordButton}
+                    onPress={() => router.push('/(auth)/forgot-password' as never)}
+                  >
+                    <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                  </Pressable>
+                </View>
+              </>
             )}
 
             <PrimaryButton
@@ -332,6 +344,20 @@ const createStyles = (t: ThemeContextValue) =>
     form: {
       gap: t.spacing.medium,
       width: '100%',
+    },
+    forgotPasswordRow: {
+      alignItems: 'flex-end',
+      marginTop: -t.spacing.small / 2,
+    },
+    forgotPasswordButton: {
+      minHeight: t.touchTarget,
+      justifyContent: 'center',
+      paddingHorizontal: t.spacing.extraSmall,
+    },
+    forgotPasswordText: {
+      ...t.textStyles.bodySmall,
+      color: t.colors.primary,
+      fontWeight: '600',
     },
     actionButton: {
       marginTop: t.spacing.small,

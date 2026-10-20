@@ -14,6 +14,8 @@ import type {
   AuthResponse,
   MeResponse,
   AcceptInvitationRequest,
+  PasswordResetRequest,
+  PasswordResetConfirmRequest,
 } from '@rota/contracts';
 
 import { wipeOfflineShifts } from '../../storage/offlineStore';
@@ -138,3 +140,29 @@ export function useAcceptInvitation() {
     },
   });
 }
+
+export function useRequestPasswordReset() {
+  return useMutation<{ message: string }, Error, PasswordResetRequest>({
+    mutationFn: async (payload) => {
+      const response = await apiClient.post<{ message: string }>('/auth/password-reset', payload);
+      return response.data;
+    },
+  });
+}
+
+export function useConfirmPasswordReset() {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message: string }, Error, PasswordResetConfirmRequest>({
+    mutationFn: async (payload) => {
+      const response = await apiClient.post<{ message: string }>('/auth/password-reset/confirm', payload);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await clearAuthTokens();
+      await wipeOfflineShifts();
+      queryClient.setQueryData(AUTH_KEYS.me, null);
+    },
+  });
+}
+
